@@ -4,7 +4,11 @@ All notable changes to the `openclaw-instance` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of the operator/app versions).
 
-## [Unreleased]
+## [0.1.1] - 2026-06-02
+
+### Changed
+- Release artifacts are now **cosign-signed** with SLSA build provenance. (`0.1.0`
+  was published unsigned due to a registry-auth bug in the release workflow.) No chart changes.
 
 ## [0.1.0] - 2026-06-02
 

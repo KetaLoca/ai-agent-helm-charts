@@ -28,7 +28,7 @@ escape hatch for fields it doesn't model yet.
 # Verify the operator/CRD first:
 kubectl get crd openclawinstances.openclaw.rocks
 
-helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.1.0 \
+helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.1.1 \
   -f my-values.yaml
 # or: helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
 
@@ -101,7 +101,7 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | CRD API | Operator | App image | Min K8s |
 |---|---|---|---|---|
-| `0.1.0` | `openclaw.rocks/v1alpha1` | `paperclipinc/openclaw-operator` (verify version) | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` |
+| `0.1.1` | `openclaw.rocks/v1alpha1` | `paperclipinc/openclaw-operator` (verify version) | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` |
 
 Unknown/newer CRD fields → route through `extraSpec` (no chart release needed). The
 targeted CRD is vendored under `crd-schema/` for reference.

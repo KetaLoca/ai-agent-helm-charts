@@ -17,7 +17,7 @@ spec:
   source:
     repoURL: ghcr.io/ketaloca/charts          # OCI registry (no scheme)
     chart: hermes-agent
-    targetRevision: 0.1.0
+    targetRevision: 0.1.1
     helm:
       valueFiles: []
       values: |
@@ -56,7 +56,7 @@ spec:
   chart:
     spec:
       chart: hermes-agent
-      version: "0.1.0"
+      version: "0.1.1"
       sourceRef:
         kind: HelmRepository
         name: ketaloca

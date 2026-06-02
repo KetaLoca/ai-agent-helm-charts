@@ -27,7 +27,7 @@ Install from the **OCI registry** (no `helm repo add` needed):
 ```bash
 helm install my-hermes \
   oci://ghcr.io/ketaloca/charts/hermes-agent \
-  --version 0.1.0 \
+  --version 0.1.1 \
   --set apiServer.key="$(openssl rand -hex 24)"   # dev only — see secrets in the chart README
 ```
 
@@ -36,7 +36,7 @@ helm install my-hermes \
 ```bash
 helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
 helm repo update
-helm install my-hermes ketaloca/hermes-agent --version 0.1.0
+helm install my-hermes ketaloca/hermes-agent --version 0.1.1
 ```
 
 Reach it **locally** — the gateway is **not** exposed publicly by default:
@@ -64,8 +64,8 @@ kubectl port-forward svc/my-hermes-hermes-agent 8642:8642
 
 | Chart | Chart version | Targets (image) | Min K8s | Helm |
 |---|---|---|---|---|
-| `hermes-agent` | `0.1.0` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` (4 supported) |
-| `openclaw-instance` | `0.1.0` | CRD `openclaw.rocks/v1alpha1` · app `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` | `>= 3.8` |
+| `hermes-agent` | `0.1.1` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` (4 supported) |
+| `openclaw-instance` | `0.1.1` | CRD `openclaw.rocks/v1alpha1` · app `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` | `>= 3.8` |
 
 \* Upstream Hermes currently ships only `:latest`; pin `image.digest` for production. See the chart README and `docs/upgrade.md`.
 The `openclaw-instance` chart requires the [OpenClaw operator](charts/openclaw-instance/README.md) and its CRDs to be installed first.

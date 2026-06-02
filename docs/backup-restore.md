@@ -47,7 +47,7 @@ kubectl scale deploy/my-hermes-hermes-agent --replicas=1   # resume
 1. Restore the PVC (Velero restore, or provision a PVC from a snapshot).
 2. Install/point the release at it:
    ```bash
-   helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.0 \
+   helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.1 \
      --set persistence.existingClaim=my-restored-pvc
    ```
 3. Verify: `kubectl logs deploy/my-hermes-hermes-agent` and `helm test my-hermes`.
