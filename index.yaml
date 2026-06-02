@@ -1,2 +1,75 @@
 apiVersion: v1
-entries: {}
+entries:
+  hermes-agent:
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: source
+          url: https://github.com/KetaLoca/ai-agent-helm-charts
+        - name: upstream
+          url: https://github.com/NousResearch/hermes-agent
+      artifacthub.io/maintainers: |
+        - name: KetaLoca
+      artifacthub.io/prerelease: "true"
+    apiVersion: v2
+    appVersion: latest
+    created: "2026-06-02T13:45:16.489386223Z"
+    description: Unofficial community Helm chart for the Hermes Agent (nousresearch/hermes-agent).
+      Hardened and private by default. Not affiliated with Nous Research.
+    digest: af0154ffe777283bd9e8628cd46f5da44e07dbd96cde4a7005869f2f6c29217e
+    home: https://github.com/KetaLoca/ai-agent-helm-charts
+    keywords:
+    - ai
+    - agent
+    - hermes
+    - llm
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: KetaLoca
+    name: hermes-agent
+    sources:
+    - https://github.com/NousResearch/hermes-agent
+    - https://github.com/KetaLoca/ai-agent-helm-charts
+    type: application
+    urls:
+    - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/hermes-agent-0.1.0/hermes-agent-0.1.0.tgz
+    version: 0.1.0
+  openclaw-instance:
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: source
+          url: https://github.com/KetaLoca/ai-agent-helm-charts
+        - name: operator
+          url: https://github.com/paperclipinc/openclaw-operator
+      artifacthub.io/maintainers: |
+        - name: KetaLoca
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "true"
+    apiVersion: v2
+    appVersion: 2026.2.3
+    created: "2026-06-02T13:45:16.759392619Z"
+    description: Unofficial community Helm chart that declares an OpenClawInstance
+      custom resource (openclaw.rocks/v1alpha1) for the OpenClaw Kubernetes Operator.
+      Requires the operator and its CRDs to be installed already. Not affiliated with
+      OpenClaw / Paperclip Inc.
+    digest: d03c69f77d3e7286995dbf4489e557f788707b6428272e04d09eca14b8eb8e38
+    home: https://github.com/KetaLoca/ai-agent-helm-charts
+    keywords:
+    - ai
+    - agent
+    - openclaw
+    - operator
+    - crd
+    kubeVersion: '>=1.28.0-0'
+    maintainers:
+    - name: KetaLoca
+    name: openclaw-instance
+    sources:
+    - https://github.com/paperclipinc/openclaw-operator
+    - https://github.com/KetaLoca/ai-agent-helm-charts
+    type: application
+    urls:
+    - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/openclaw-instance-0.1.0/openclaw-instance-0.1.0.tgz
+    version: 0.1.0
+generated: "2026-06-02T13:45:16.759401943Z"
