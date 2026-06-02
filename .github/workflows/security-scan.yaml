@@ -32,7 +32,8 @@ jobs:
       # Non-gating (exit-code 0) — findings are reported, not enforced. Once the repo
       # is public with GitHub Advanced Security, add SARIF output + upload-sarif here.
       - name: Trivy config (misconfiguration) scan
-        run: trivy config --severity HIGH,CRITICAL --exit-code 0 --format table charts
+        # --ignorefile records deliberate, documented exceptions (see .trivyignore).
+        run: trivy config --ignorefile .trivyignore --severity HIGH,CRITICAL --exit-code 0 --format table charts
 
       # Catch accidentally committed secrets.
       - name: Trivy secret scan

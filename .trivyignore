@@ -1,0 +1,11 @@
+# Trivy ignore list — documented, deliberate exceptions ONLY. Each entry must have a
+# justification. Keep this list short so genuinely new findings stand out.
+#
+# readOnlyRootFilesystem should be true (KSV0014 / AVD-KSV-0014).
+# EXCEPTION (hermes-agent): the upstream image runs s6-overlay as PID 1, which writes
+# to /run, so a read-only root filesystem breaks startup without extra scratch mounts.
+# This is intentional and documented; a read-only-rootfs opt-in (with emptyDir scratch)
+# is planned. See specs/04-security-model.md §4 and charts/hermes-agent/README.md.
+AVD-KSV-0014
+KSV-0014
+KSV0014
