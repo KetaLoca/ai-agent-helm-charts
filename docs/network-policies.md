@@ -54,3 +54,39 @@ networkPolicy:
 
 When exposing via Tailscale, allow only the operator namespace to reach the pod
 (same pattern as above, with the tailscale operator's namespace).
+
+## Per-hostname egress with Cilium (FQDN)
+
+If your cluster runs Cilium, you can allow-list egress **by hostname** (which native
+NetworkPolicy cannot). Apply alongside the chart (via `extraObjects` or your platform repo):
+
+```yaml
+apiVersion: cilium.io/v2
+kind: CiliumNetworkPolicy
+metadata:
+  name: hermes-egress-fqdn
+spec:
+  endpointSelector:
+    matchLabels:
+      app.kubernetes.io/name: hermes-agent
+  egress:
+    - toEndpoints:
+        - matchLabels:
+            k8s:io.kubernetes.pod.namespace: kube-system
+            k8s-app: kube-dns
+      toPorts:
+        - ports:
+            - {port: "53", protocol: ANY}
+          rules:
+            dns:
+              - matchPattern: "*"
+    - toFQDNs:
+        - matchName: api.anthropic.com
+        - matchName: api.openai.com
+      toPorts:
+        - ports:
+            - {port: "443", protocol: TCP}
+```
+
+This denies all other egress while allowing DNS + HTTPS to the named providers only —
+real containment that L4 NetworkPolicy can't express.

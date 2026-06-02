@@ -72,3 +72,29 @@ tests:
           content:
             name: dshm
             mountPath: /dev/shm
+
+  - it: mounts writable scratch emptyDirs when readOnlyRootFilesystem is enabled
+    set:
+      securityContext.readOnlyRootFilesystem: true
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
+          value: true
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: scratch-0
+            mountPath: /run
+      - contains:
+          path: spec.template.spec.volumes
+          content:
+            name: scratch-0
+            emptyDir: {}
+
+  - it: has no scratch mounts by default (read-only rootfs off)
+    asserts:
+      - notContains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: scratch-0
+            mountPath: /run

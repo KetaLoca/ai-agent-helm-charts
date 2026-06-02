@@ -59,9 +59,20 @@ helm search repo ketaloca
 - Helm `v3.16.4`, `helm/chart-releaser-action@v1.6.0` (Renovate keeps these current).
 - Trivy is installed via the official script (latest) in `security-scan`.
 
-## Roadmap (Phase 5)
+## Supply chain: signatures & provenance
 
-- **cosign** keyless signing of the OCI charts (the workflow already requests
-  `id-token: write`); publish the signing key to Artifact Hub (`artifacthub.io/signKey`).
-- SLSA provenance attestation; SARIF upload from `security-scan` once GitHub Advanced
-  Security is available (public repo).
+Each released chart is **signed with cosign (keyless OIDC)** and gets a **SLSA build
+provenance** attestation (see `release.yaml`). Consumers verify with:
+
+```bash
+cosign verify ghcr.io/ketaloca/charts/hermes-agent:<X.Y.Z> \
+  --certificate-identity-regexp '^https://github.com/KetaLoca/ai-agent-helm-charts/' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+```
+
+Keyless signing has no static key to distribute; Artifact Hub auto-detects the cosign
+signature in the OCI registry and shows a "Signed" badge.
+
+## Still on the roadmap
+
+- SARIF upload from `security-scan` once the repo is public with GitHub Advanced Security.

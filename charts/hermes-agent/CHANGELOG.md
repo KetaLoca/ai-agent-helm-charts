@@ -6,6 +6,11 @@ Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart foll
 
 ## [Unreleased]
 
+### Added
+- Experimental opt-in: `securityContext.readOnlyRootFilesystem: true` now auto-mounts
+  writable `emptyDir` scratch at `scratchPaths` (default `/run`, `/tmp`) so s6-overlay
+  can still boot. Example: `examples/hermes/readonly-rootfs-values.yaml`.
+
 ## [0.1.0] - 2026-06-02
 
 ### Added

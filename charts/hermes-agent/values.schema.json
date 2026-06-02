@@ -137,7 +137,8 @@
     "fullnameOverride": { "type": "string" },
     "extraVolumes": { "type": "array" },
     "extraVolumeMounts": { "type": "array" },
-    "extraObjects": { "type": "array" }
+    "extraObjects": { "type": "array" },
+    "scratchPaths": { "type": "array", "items": { "type": "string" } }
   },
   "if": {
     "properties": {

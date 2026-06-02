@@ -48,4 +48,22 @@ cannot allow-list by hostname.** For per-provider egress use a CNI with FQDN pol
 - No `:latest` in production.
 - Don't enable the dashboard on a public Service; don't set `dashboard.insecure` off a VPN.
 
+## Cloudflare Tunnel (no open inbound)
+
+Expose the gateway through Cloudflare with **zero open inbound ports**: run
+`cloudflared` in the cluster pointing at the ClusterIP Service, and gate it with
+**Cloudflare Access**.
+
+```yaml
+# cloudflared tunnel config (sketch) — deploy via Cloudflare's chart or your manifest.
+ingress:
+  - hostname: hermes.example.com
+    service: http://my-hermes-hermes-agent:8642
+  - service: http_status:404
+```
+
+Create a Cloudflare Access application for `hermes.example.com` requiring your identity
+provider. The chart's `ingress` stays disabled and you still set the gateway API key —
+defense in depth.
+
 → Next: the [production checklist](production-checklist.md).

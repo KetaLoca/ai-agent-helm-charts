@@ -142,6 +142,12 @@ spec:
             - name: dshm
               mountPath: /dev/shm
             {{- end }}
+            {{- if .Values.securityContext.readOnlyRootFilesystem }}
+            {{- range $i, $p := .Values.scratchPaths }}
+            - name: {{ printf "scratch-%d" $i }}
+              mountPath: {{ $p | quote }}
+            {{- end }}
+            {{- end }}
             {{- with .Values.extraVolumeMounts }}
             {{- toYaml . | nindent 12 }}
             {{- end }}
@@ -158,6 +164,12 @@ spec:
           emptyDir:
             medium: Memory
             sizeLimit: {{ .Values.shm.size }}
+        {{- end }}
+        {{- if .Values.securityContext.readOnlyRootFilesystem }}
+        {{- range $i, $p := .Values.scratchPaths }}
+        - name: {{ printf "scratch-%d" $i }}
+          emptyDir: {}
+        {{- end }}
         {{- end }}
         {{- with .Values.extraVolumes }}
         {{- toYaml . | nindent 8 }}

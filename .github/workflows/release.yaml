@@ -8,9 +8,10 @@ on:
   workflow_dispatch: {}
 
 permissions:
-  contents: write   # create GitHub Releases + push to the gh-pages branch
-  packages: write   # push OCI charts to GHCR
-  id-token: write   # reserved for cosign keyless signing (Phase 5)
+  contents: write       # create GitHub Releases + push to the gh-pages branch
+  packages: write       # push OCI charts to GHCR
+  id-token: write       # cosign keyless signing (OIDC)
+  attestations: write   # SLSA build provenance attestations
 
 jobs:
   release:
@@ -55,3 +56,24 @@ jobs:
             echo "Pushing ${p} -> oci://ghcr.io/ketaloca/charts"
             helm push "${p}" oci://ghcr.io/ketaloca/charts
           done
+
+      - name: Install cosign
+        uses: sigstore/cosign-installer@v3
+
+      - name: Sign published charts (keyless OIDC)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          pkgs=(.cr-release-packages/*.tgz)
+          if [ ${#pkgs[@]} -eq 0 ]; then echo "Nothing to sign."; exit 0; fi
+          for p in "${pkgs[@]}"; do
+            base="$(basename "${p}" .tgz)"   # <chart>-<version>
+            name="${base%-*}"; ver="${base##*-}"
+            echo "Signing ghcr.io/ketaloca/charts/${name}:${ver}"
+            cosign sign --yes "ghcr.io/ketaloca/charts/${name}:${ver}"
+          done
+
+      - name: Attest build provenance for the chart packages
+        uses: actions/attest-build-provenance@v2
+        with:
+          subject-path: ".cr-release-packages/*.tgz"

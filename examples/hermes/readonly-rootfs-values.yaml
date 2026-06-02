@@ -1,0 +1,14 @@
+# EXPERIMENTAL hardening: read-only root filesystem.
+# Hermes runs s6-overlay as PID 1, which writes to /run, so the chart auto-mounts
+# writable emptyDir scratch at scratchPaths (/run, /tmp) when this is enabled.
+# VALIDATE against your Hermes image version before relying on this — if the image
+# writes elsewhere at runtime, add those paths to scratchPaths.
+
+securityContext:
+  readOnlyRootFilesystem: true
+
+# Add more writable paths here if your image needs them:
+# scratchPaths:
+#   - /run
+#   - /tmp
+#   - /var/cache

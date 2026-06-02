@@ -129,13 +129,20 @@ podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
 
-# -- Container-level security context. readOnlyRootFilesystem is off (s6-overlay writes to /run).
+# -- Container-level security context. readOnlyRootFilesystem is off by default
+# (s6-overlay PID 1 writes to /run). Set it true to harden — the chart then mounts
+# writable emptyDir scratch at `scratchPaths`. EXPERIMENTAL: validate against your image.
 securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
   capabilities:
     drop:
       - ALL
+
+# -- Writable scratch paths mounted as emptyDir, ONLY when securityContext.readOnlyRootFilesystem is true.
+scratchPaths:
+  - /run
+  - /tmp
 
 serviceAccount:
   # -- Create a ServiceAccount.

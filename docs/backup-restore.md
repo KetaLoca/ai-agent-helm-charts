@@ -53,3 +53,41 @@ kubectl scale deploy/my-hermes-hermes-agent --replicas=1   # resume
 3. Verify: `kubectl logs deploy/my-hermes-hermes-agent` and `helm test my-hermes`.
 
 **Test your restore** on a throwaway namespace before you need it.
+
+## Declarative (GitOps) backups
+
+Velero `Schedule` (commit it to your platform repo):
+
+```yaml
+apiVersion: velero.io/v1
+kind: Schedule
+metadata:
+  name: hermes-daily
+  namespace: velero
+spec:
+  schedule: "0 3 * * *"
+  template:
+    includedNamespaces: [my-namespace]
+    defaultVolumesToFsBackup: true
+    ttl: 720h
+```
+
+CSI snapshot of just the PVC (if your StorageClass has a snapshot class):
+
+```yaml
+apiVersion: snapshot.storage.k8s.io/v1
+kind: VolumeSnapshot
+metadata:
+  name: hermes-data-snap
+spec:
+  volumeSnapshotClassName: csi-snapclass
+  source:
+    persistentVolumeClaimName: my-hermes-hermes-agent
+```
+
+### Restore drill (run it before you need it)
+
+1. In a scratch namespace, restore the backup/snapshot into a new PVC.
+2. `helm install drill oci://ghcr.io/ketaloca/charts/hermes-agent --set persistence.existingClaim=<restored-pvc>`.
+3. `kubectl logs` + `helm test drill` to confirm the gateway comes up with the data intact.
+4. Tear down the scratch namespace.
