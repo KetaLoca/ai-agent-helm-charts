@@ -1,0 +1,57 @@
+name: release
+
+# Manual only — releases never fire automatically. Run from the Actions tab
+# ("release" -> "Run workflow") once a chart version is bumped and you are ready to
+# publish. See docs/releasing.md for one-time setup (gh-pages, public packages,
+# Artifact Hub).
+on:
+  workflow_dispatch: {}
+
+permissions:
+  contents: write   # create GitHub Releases + push to the gh-pages branch
+  packages: write   # push OCI charts to GHCR
+  id-token: write   # reserved for cosign keyless signing (Phase 5)
+
+jobs:
+  release:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Configure git identity
+        run: |
+          git config user.name "${GITHUB_ACTOR}"
+          git config user.email "${GITHUB_ACTOR}@users.noreply.github.com"
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      # Classic channel: packages changed charts, creates GitHub Releases, and
+      # updates index.yaml on the gh-pages branch (which must already exist).
+      - name: Run chart-releaser
+        uses: helm/chart-releaser-action@v1.6.0
+        with:
+          charts_dir: charts
+        env:
+          CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
+          CR_SKIP_EXISTING: "true"
+
+      # OCI channel: push the same freshly-packaged charts to GHCR.
+      - name: Push new charts to GHCR (OCI)
+        run: |
+          set -euo pipefail
+          shopt -s nullglob
+          pkgs=(.cr-release-packages/*.tgz)
+          if [ ${#pkgs[@]} -eq 0 ]; then
+            echo "No new chart versions to push."
+            exit 0
+          fi
+          echo "${{ secrets.GITHUB_TOKEN }}" | helm registry login ghcr.io -u "${{ github.actor }}" --password-stdin
+          for p in "${pkgs[@]}"; do
+            echo "Pushing ${p} -> oci://ghcr.io/ketaloca/charts"
+            helm push "${p}" oci://ghcr.io/ketaloca/charts
+          done

@@ -74,7 +74,7 @@ The `openclaw-instance` chart requires the [OpenClaw operator](charts/openclaw-i
 
 - [Security model](docs/security.md) · [Production checklist](docs/production-checklist.md)
 - [Backup & restore](docs/backup-restore.md) · [Upgrade](docs/upgrade.md) · [Troubleshooting](docs/troubleshooting.md)
-- [External secrets](docs/external-secrets.md) · [Network policies](docs/network-policies.md) · [GitOps](docs/gitops.md)
+- [External secrets](docs/external-secrets.md) · [Network policies](docs/network-policies.md) · [GitOps](docs/gitops.md) · [Releasing](docs/releasing.md)
 - Design specs live in [`specs/`](specs/).
 
 ## Contributing & security

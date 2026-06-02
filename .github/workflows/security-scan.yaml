@@ -1,0 +1,39 @@
+name: security-scan
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    # Weekly, to catch newly disclosed issues in the charts/pinned images.
+    - cron: "0 6 * * 1"
+
+permissions:
+  contents: read
+
+jobs:
+  trivy:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Set up Helm
+        uses: azure/setup-helm@v4
+        with:
+          version: v3.16.4
+
+      - name: Install Trivy
+        run: |
+          curl -sfL https://raw.githubusercontent.com/aquasecurity/trivy/main/contrib/install.sh \
+            | sh -s -- -b /usr/local/bin
+          trivy --version
+
+      # Misconfiguration scan of the charts (Trivy templates them itself).
+      # Non-gating (exit-code 0) — findings are reported, not enforced. Once the repo
+      # is public with GitHub Advanced Security, add SARIF output + upload-sarif here.
+      - name: Trivy config (misconfiguration) scan
+        run: trivy config --severity HIGH,CRITICAL --exit-code 0 --format table charts
+
+      # Catch accidentally committed secrets.
+      - name: Trivy secret scan
+        run: trivy fs --scanners secret --exit-code 0 --format table .
