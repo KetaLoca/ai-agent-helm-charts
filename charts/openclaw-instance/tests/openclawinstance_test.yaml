@@ -1,0 +1,89 @@
+suite: openclawinstance
+templates:
+  - templates/openclawinstance.yaml
+release:
+  name: rel
+  namespace: default
+tests:
+  - it: emits an OpenClawInstance v1alpha1
+    asserts:
+      - isKind:
+          of: OpenClawInstance
+      - isAPIVersion:
+          of: openclaw.rocks/v1alpha1
+      - equal:
+          path: metadata.name
+          value: rel-openclaw-instance
+
+  - it: honours instance.name
+    set:
+      instance.name: my-tenant
+    asserts:
+      - equal:
+          path: metadata.name
+          value: my-tenant
+
+  - it: maps friendly values to the right CRD spec paths
+    asserts:
+      - equal:
+          path: spec.image.repository
+          value: "ghcr.io/openclaw/openclaw"
+      - equal:
+          path: spec.image.tag
+          value: "2026.2.3"
+      - equal:
+          path: spec.storage.persistence.enabled
+          value: true
+      - equal:
+          path: spec.storage.persistence.orphan
+          value: true
+      - equal:
+          path: spec.security.networkPolicy.enabled
+          value: true
+      - equal:
+          path: spec.networking.service.type
+          value: ClusterIP
+
+  - it: applies secure defaults (risky features off / pruned)
+    asserts:
+      - notExists:
+          path: spec.networking.ingress
+      - notExists:
+          path: spec.chromium
+      - notExists:
+          path: spec.webTerminal
+      - notExists:
+          path: spec.autoUpdate
+      - notExists:
+          path: spec.selfConfigure
+      - notExists:
+          path: spec.suspended
+
+  - it: extraSpec deep-merges and wins on conflict
+    set:
+      extraSpec.image.repository: ghcr.io/custom/openclaw
+      extraSpec.gateway.replicas: 3
+    asserts:
+      - equal:
+          path: spec.image.repository
+          value: "ghcr.io/custom/openclaw"
+      - equal:
+          path: spec.gateway.replicas
+          value: 3
+
+  - it: wires a created dev secret into spec.envFrom
+    set:
+      secrets.create: true
+      secrets.data.ANTHROPIC_API_KEY: xxx
+    asserts:
+      - contains:
+          path: spec.envFrom
+          content:
+            secretRef:
+              name: rel-openclaw-instance-secret
+
+  - it: rejects ingress enabled without hosts
+    set:
+      networking.ingress.enabled: true
+    asserts:
+      - failedTemplate: {}

@@ -1,0 +1,18 @@
+{{- include "openclaw-instance.validate" . -}}
+apiVersion: openclaw.rocks/v1alpha1
+kind: OpenClawInstance
+metadata:
+  name: {{ include "openclaw-instance.instanceName" . }}
+  labels:
+    {{- include "openclaw-instance.labels" . | nindent 4 }}
+    {{- with .Values.instance.labels }}
+    {{- toYaml . | nindent 4 }}
+    {{- end }}
+  {{- with .Values.instance.annotations }}
+  annotations:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+spec:
+  {{- $modeled := include "openclaw-instance.modeledSpec" . | fromYaml }}
+  {{- $spec := mergeOverwrite $modeled (deepCopy .Values.extraSpec) }}
+  {{- $spec | toYaml | nindent 2 }}

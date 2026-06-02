@@ -1,0 +1,48 @@
+Thank you for installing {{ .Chart.Name }} (chart {{ .Chart.Version }}).
+
+⚠️  UNOFFICIAL community chart — not affiliated with OpenClaw / Paperclip Inc. See TRADEMARKS.md.
+
+Declared OpenClawInstance:
+  Name:      {{ include "openclaw-instance.instanceName" . }}
+  Namespace: {{ .Release.Namespace }}
+  Image:     {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}{{ if .Values.image.digest }} (digest pinned){{ end }}
+
+PREREQUISITE — the OpenClaw operator and its CRDs must already be installed. Verify:
+  kubectl get crd openclawinstances.openclaw.rocks
+If missing, install the operator first (see examples/openclaw/operator-notes.md);
+otherwise `helm install` fails with "no matches for kind OpenClawInstance".
+
+Check your instance:
+  kubectl -n {{ .Release.Namespace }} get openclawinstance {{ include "openclaw-instance.instanceName" . }}
+  kubectl -n {{ .Release.Namespace }} describe openclawinstance {{ include "openclaw-instance.instanceName" . }}
+
+Secure defaults in effect:
+  - NetworkPolicy: {{ .Values.security.networkPolicy.enabled }} (keeps the operator's default-deny)
+  - Ingress: {{ .Values.networking.ingress.enabled }} | chromium: {{ .Values.chromium.enabled }} | webTerminal: {{ .Values.webTerminal.enabled }}
+  - autoUpdate: {{ .Values.autoUpdate.enabled }} | selfConfigure: {{ .Values.selfConfigure.enabled }}
+{{- if .Values.networking.ingress.enabled }}
+
+‼️  Ingress ENABLED — ensure auth + TLS. With the default-deny NetworkPolicy on, you MUST add
+   your ingress controller's namespace to security.networkPolicy.allowedIngressNamespaces, or
+   traffic is blocked. Prefer Tailscale / an identity-aware proxy (docs/security.md).
+{{- end }}
+{{- if .Values.selfConfigure.enabled }}
+
+‼️  selfConfigure ENABLED — agents can modify their own instance (operator injects RBAC + a helper skill).
+{{- end }}
+{{- if .Values.autoUpdate.enabled }}
+
+⚠️  autoUpdate ENABLED — the operator may pull new images automatically (supply-chain risk).
+{{- end }}
+{{- if .Values.chromium.enabled }}
+
+⚠️  chromium (headless browser) ENABLED — extra egress / attack surface.
+{{- end }}
+{{- if .Values.webTerminal.enabled }}
+
+⚠️  webTerminal ENABLED — interactive shell into the pod.
+{{- end }}
+{{- if .Values.persistence.enabled }}
+
+Persistence ON ({{ .Values.persistence.size }}); orphan={{ .Values.persistence.orphan }} → PVC {{ if .Values.persistence.orphan }}RETAINED{{ else }}DELETED{{ end }} when the CR is deleted. Back it up (docs/backup-restore.md).
+{{- end }}

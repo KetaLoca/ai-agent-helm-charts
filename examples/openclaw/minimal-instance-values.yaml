@@ -1,0 +1,14 @@
+# Minimal OpenClawInstance. Requires the OpenClaw operator + CRDs already installed
+# (see operator-notes.md). Provider keys come from a Secret named "openclaw-keys".
+#
+#   helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance \
+#     -f examples/openclaw/minimal-instance-values.yaml
+#
+#   kubectl get openclawinstance oc-openclaw-instance
+
+secrets:
+  existingSecret: openclaw-keys
+
+persistence:
+  enabled: true
+  size: 10Gi

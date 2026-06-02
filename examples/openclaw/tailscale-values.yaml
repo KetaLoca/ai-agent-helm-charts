@@ -1,0 +1,18 @@
+# Expose the instance on your tailnet via the operator's NATIVE Tailscale support
+# (spec.tailscale). No public Ingress. Fields under `tailscale` are passed through
+# to the CR — confirm the exact schema for your operator version.
+
+tailscale:
+  enabled: true
+  # Passthrough fields (verify against your operator's CRD version), e.g.:
+  # authKeySecretRef:
+  #   name: tailscale-auth
+  #   key: TS_AUTHKEY
+  # hostname: openclaw
+
+networking:
+  ingress:
+    enabled: false
+
+secrets:
+  existingSecret: openclaw-keys

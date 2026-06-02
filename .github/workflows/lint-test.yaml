@@ -74,17 +74,26 @@ jobs:
             echo "== render hermes-agent -f ${f} =="
             helm template rel charts/hermes-agent -f "${f}" >/dev/null
           done
+          for f in examples/openclaw/*.yaml; do
+            echo "== render openclaw-instance -f ${f} =="
+            helm template rel charts/openclaw-instance -f "${f}" >/dev/null
+          done
 
       - name: kubeconform (Kubernetes version matrix)
         run: |
           set -euo pipefail
           for kver in 1.25.16 1.28.15 1.31.2; do
-            echo "== kubeconform k8s ${kver} =="
+            echo "== kubeconform hermes-agent k8s ${kver} =="
             helm template rel charts/hermes-agent \
               | kubeconform -strict -summary -ignore-missing-schemas \
                   -kubernetes-version "${kver}" \
                   -schema-location default
           done
+          echo "== kubeconform openclaw-instance (OpenClawInstance CR skipped; ancillary resources validated) =="
+          helm template rel charts/openclaw-instance \
+            --set secrets.create=true --set secrets.data.PLACEHOLDER=x \
+            | kubeconform -strict -summary -ignore-missing-schemas \
+                -kubernetes-version 1.31.2 -schema-location default
 
       - name: helm-unittest
         run: |

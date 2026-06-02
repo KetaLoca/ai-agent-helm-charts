@@ -1,0 +1,37 @@
+apiVersion: v2
+name: openclaw-instance
+description: >-
+  Unofficial community Helm chart that declares an OpenClawInstance custom resource
+  (openclaw.rocks/v1alpha1) for the OpenClaw Kubernetes Operator. Requires the operator
+  and its CRDs to be installed already. Not affiliated with OpenClaw / Paperclip Inc.
+type: application
+# Chart SemVer (independent of the OpenClaw app/operator versions).
+version: 0.1.0
+# Targeted OpenClaw application image version (referenced in the CR's spec.image).
+appVersion: "2026.2.3"
+# The OpenClaw operator requires Kubernetes >= 1.28.
+kubeVersion: ">=1.28.0-0"
+home: https://github.com/KetaLoca/ai-agent-helm-charts
+sources:
+  - https://github.com/paperclipinc/openclaw-operator
+  - https://github.com/KetaLoca/ai-agent-helm-charts
+keywords:
+  - ai
+  - agent
+  - openclaw
+  - operator
+  - crd
+maintainers:
+  - name: KetaLoca
+annotations:
+  artifacthub.io/license: MIT
+  # This chart produces a CR for the operator; it is NOT the operator itself.
+  artifacthub.io/operator: "false"
+  artifacthub.io/prerelease: "true"
+  artifacthub.io/links: |
+    - name: source
+      url: https://github.com/KetaLoca/ai-agent-helm-charts
+    - name: operator
+      url: https://github.com/paperclipinc/openclaw-operator
+  artifacthub.io/maintainers: |
+    - name: KetaLoca

@@ -1,0 +1,24 @@
+{{- if .Values.extraNetworkPolicy.enabled -}}
+{{- /* Supplementary NetworkPolicy, IN ADDITION to the operator-managed one.
+       TODO(verify): confirm the operator's pod labels for this instance; an empty
+       podSelector targets ALL pods in the namespace. */ -}}
+apiVersion: networking.k8s.io/v1
+kind: NetworkPolicy
+metadata:
+  name: {{ include "openclaw-instance.fullname" . }}-extra
+  labels:
+    {{- include "openclaw-instance.labels" . | nindent 4 }}
+spec:
+  podSelector:
+    {{- toYaml .Values.extraNetworkPolicy.podSelector | nindent 4 }}
+  policyTypes:
+    {{- toYaml .Values.extraNetworkPolicy.policyTypes | nindent 4 }}
+  {{- with .Values.extraNetworkPolicy.ingress }}
+  ingress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+  {{- with .Values.extraNetworkPolicy.egress }}
+  egress:
+    {{- toYaml . | nindent 4 }}
+  {{- end }}
+{{- end }}

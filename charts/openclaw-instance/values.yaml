@@ -1,0 +1,232 @@
+# Default values for openclaw-instance.
+# This chart DECLARES an OpenClawInstance custom resource for the OpenClaw operator;
+# it does NOT install OpenClaw or the operator. The operator + its CRDs must already
+# be installed (see examples/openclaw/operator-notes.md). Unofficial — see TRADEMARKS.md.
+
+instance:
+  # -- Name of the OpenClawInstance (and downstream resources). Defaults to the release fullname.
+  name: ""
+  # -- Extra labels on the CR object.
+  labels: {}
+  # -- Extra annotations on the CR object.
+  annotations: {}
+
+operator:
+  # -- This chart REQUIRES the OpenClaw operator + CRDs to be installed already.
+  # Informational: surfaces a preflight reminder in NOTES. `helm install` fails
+  # naturally if the CRD is absent.
+  required: true
+
+# -- Optional image registry override (spec.registry).
+registry: ""
+
+image:
+  # -- OpenClaw application image repository (used by the operator).
+  repository: ghcr.io/openclaw/openclaw
+  # -- Image tag. Empty falls back to .Chart.AppVersion. Avoid floating tags in prod.
+  tag: ""
+  # -- Pin by digest (wins over tag). Recommended for production.
+  digest: ""
+  pullPolicy: IfNotPresent
+  # -- Image pull secrets ([{name: ...}]).
+  pullSecrets: []
+
+config:
+  # -- Inline OpenClaw config merged by the operator (spec.config.raw).
+  raw: {}
+  # -- Reference an existing ConfigMap instead of `raw`/`fromFiles`.
+  configMapRef: ""
+  # -- If set, the chart renders a ConfigMap from these files and wires configMapRef.
+  fromFiles: {}
+  # -- Config merge mode (passthrough if set).
+  mergeMode: ""
+  # -- Config format (passthrough if set).
+  format: ""
+
+# -- Skills to enable (spec.skills).
+skills: []
+# -- Plugins to enable (spec.plugins).
+plugins: []
+
+# -- Environment variables (list of EnvVar).
+env: []
+# -- envFrom sources (list of EnvFromSource). Created/existing secrets are appended automatically.
+envFrom: []
+
+secrets:
+  # -- DEV ONLY: render a Secret from `data` and append it to spec.envFrom.
+  create: false
+  # -- PRODUCTION: reference a pre-existing Secret (appended to spec.envFrom as a secretRef).
+  existingSecret: ""
+  # -- Key/value data for the dev Secret (e.g. provider API keys).
+  data: {}
+
+# -- Resource requests/limits (spec.resources).
+resources:
+  requests:
+    cpu: "500m"
+    memory: "1Gi"
+  limits:
+    memory: "4Gi"
+
+persistence:
+  # -- Persist OpenClaw data (spec.storage.persistence).
+  enabled: true
+  # -- StorageClass ("" = cluster default).
+  storageClass: ""
+  # -- PVC size.
+  size: 10Gi
+  # -- Access modes.
+  accessModes:
+    - ReadWriteOnce
+  # -- Use an existing PVC instead of creating one.
+  existingClaim: ""
+  # -- Retain the PVC when the CR is deleted. Confirmed: orphan=true means RETAIN
+  # (the operator drops the PVC's owner reference). Default true.
+  orphan: true
+
+security:
+  # -- Pod security context (spec.security.podSecurityContext).
+  podSecurityContext:
+    runAsNonRoot: true
+    runAsUser: 1000
+    runAsGroup: 1000
+    fsGroup: 1000
+    seccompProfile:
+      type: RuntimeDefault
+  # -- Container security context (spec.security.containerSecurityContext).
+  # readOnlyRootFilesystem is left to the operator default until app-verified.
+  containerSecurityContext:
+    allowPrivilegeEscalation: false
+    capabilities:
+      drop:
+        - ALL
+  networkPolicy:
+    # -- Keep the operator's default-deny NetworkPolicy on.
+    enabled: true
+    # -- Allow egress to kube-dns.
+    allowDNS: true
+    # -- Namespaces allowed to reach the instance (e.g. your ingress controller's ns).
+    allowedIngressNamespaces: []
+    # -- CIDRs allowed to reach the instance.
+    allowedIngressCIDRs: []
+  rbac:
+    # -- Let the operator create a ServiceAccount for the instance.
+    createServiceAccount: true
+  # -- Optional CA bundle (spec.security.caBundle).
+  caBundle: ""
+
+chromium:
+  # -- Headless browser (egress + attack surface) — opt-in only. When enabled, add
+  # image/resources/persistence here; the whole block is passed to spec.chromium.
+  enabled: false
+
+tailscale:
+  # -- Expose the instance on your tailnet via the operator's native Tailscale support.
+  # When enabled, add the operator's tailscale fields here (passed through to spec.tailscale).
+  enabled: false
+
+# -- Ollama integration (spec.ollama) — advanced passthrough.
+ollama: {}
+
+webTerminal:
+  # -- Interactive web terminal into the pod — opt-in only (passed to spec.webTerminal).
+  enabled: false
+
+networking:
+  service:
+    # -- Service type. Keep ClusterIP; don't expose publicly.
+    type: ClusterIP
+    annotations: {}
+  ingress:
+    # -- Expose via Ingress. Off by default — prefer Tailscale / an identity-aware proxy.
+    enabled: false
+    className: ""
+    annotations: {}
+    # -- Hosts: [{host, paths: [{path, pathType}]}].
+    hosts: []
+    # -- TLS: [{secretName, hosts: []}].
+    tls: []
+    # -- Ingress security (spec.networking.ingress.security): forceHTTPS/enableHSTS/rateLimiting.
+    security:
+      forceHTTPS: true
+      enableHSTS: true
+      rateLimiting:
+        enabled: false
+        requestsPerSecond: 50
+
+# -- Probes (spec.probes). LEFT UNSET by default: the operator knows the app's health
+# endpoints and ships sane defaults. Override only when needed, e.g.:
+#   probes:
+#     readiness: {enabled: true, initialDelaySeconds: 5, periodSeconds: 5}
+probes: {}
+
+observability:
+  metrics:
+    # -- Expose Prometheus metrics (spec.observability.metrics).
+    enabled: true
+    port: 9090
+    serviceMonitor:
+      # -- Create a ServiceMonitor (requires the Prometheus Operator). Off unless present.
+      enabled: false
+      interval: 15s
+      labels: {}
+  logging:
+    level: info
+    format: json
+
+availability:
+  podDisruptionBudget:
+    # -- Create a PDB (spec.availability.podDisruptionBudget).
+    enabled: false
+    maxUnavailable: 1
+  # -- Autoscaling passthrough. Beware OpenClaw is stateful (single-writer) — understand
+  # the operator's semantics before scaling.
+  autoScaling: {}
+  nodeSelector: {}
+  tolerations: []
+  affinity: {}
+  topologySpreadConstraints: []
+  runtimeClassName: ""
+
+# -- Suspend reconciliation (spec.suspended).
+suspended: false
+# -- Restore from a backup reference (spec.restoreFrom).
+restoreFrom: ""
+
+autoUpdate:
+  # -- Automatic image updates from the OCI registry. Off by default (supply-chain risk).
+  # Add the operator's autoUpdate fields here when enabling.
+  enabled: false
+
+selfConfigure:
+  # -- Let agents modify their own instance via OpenClawSelfConfig (injects RBAC + a
+  # helper skill). Off by default (privilege/behavior risk).
+  enabled: false
+
+# -- Extra annotations on the operator-managed pod (spec.podAnnotations).
+podAnnotations: {}
+
+# Supplementary NetworkPolicy rendered by THIS chart (in addition to the operator's).
+extraNetworkPolicy:
+  # -- Render an extra NetworkPolicy. Advanced.
+  enabled: false
+  # -- Pod selector for the extra policy. TODO(verify): the operator's pod labels for
+  # this instance must be confirmed; an empty selector targets ALL pods in the namespace.
+  podSelector: {}
+  # -- Policy types.
+  policyTypes:
+    - Egress
+  # -- Ingress rules.
+  ingress: []
+  # -- Egress rules.
+  egress: []
+
+# -- Arbitrary object DEEP-MERGED into spec AFTER the modeled fields (extraSpec wins on
+# conflict). Use for CRD fields the chart doesn't model yet (gateway, backup, workspace,
+# initContainers, sidecars, ...). Lists are replaced, not concatenated.
+extraSpec: {}
+
+# -- Name overrides.
+nameOverride: ""
+fullnameOverride: ""

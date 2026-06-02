@@ -1,0 +1,12 @@
+# Patterns to exclude when packaging the chart.
+.git/
+.gitignore
+.DS_Store
+*.tgz
+*.bak
+*.orig
+# Dev-only / reference assets (not part of the released chart):
+ci/
+tests/
+*_test.yaml
+crd-schema/

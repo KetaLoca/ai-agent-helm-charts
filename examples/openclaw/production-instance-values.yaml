@@ -1,0 +1,54 @@
+# Production-leaning OpenClawInstance. Review docs/production-checklist.md.
+# Pinned image, external secret, NetworkPolicy allow-list, PDB, ServiceMonitor;
+# risky features (chromium / selfConfigure / autoUpdate / ingress) kept off.
+
+image:
+  # Pin a digest for production (resolve the current one). Tag shown as a fallback.
+  # digest: "sha256:REPLACE_WITH_A_REAL_DIGEST"
+  tag: "2026.2.3"
+
+secrets:
+  existingSecret: openclaw-keys   # External Secrets / Sealed Secrets / SOPS — see docs
+
+persistence:
+  enabled: true
+  storageClass: ""    # set a fast RWO StorageClass
+  size: 50Gi
+  orphan: true        # retain the PVC if the CR is deleted
+
+resources:
+  requests:
+    cpu: "1"
+    memory: "2Gi"
+  limits:
+    memory: "4Gi"
+
+security:
+  networkPolicy:
+    enabled: true
+    allowDNS: true
+    allowedIngressNamespaces: []   # add your ingress controller ns only if you expose it
+
+availability:
+  podDisruptionBudget:
+    enabled: true
+    maxUnavailable: 1
+
+observability:
+  metrics:
+    enabled: true
+    serviceMonitor:
+      enabled: true           # requires the Prometheus Operator
+      labels:
+        release: prometheus
+
+chromium:
+  enabled: false
+selfConfigure:
+  enabled: false
+autoUpdate:
+  enabled: false
+
+networking:
+  ingress:
+    enabled: false            # prefer Tailscale / an identity-aware proxy

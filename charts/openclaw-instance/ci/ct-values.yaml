@@ -1,0 +1,19 @@
+# Values used by chart-testing (ct) and render checks.
+# Exercises ingress + NetworkPolicy allow-list + an existing-secret reference.
+secrets:
+  existingSecret: openclaw-keys
+networking:
+  ingress:
+    enabled: true
+    className: nginx
+    hosts:
+      - host: oc.ci.example.com
+        paths:
+          - path: /
+            pathType: Prefix
+security:
+  networkPolicy:
+    enabled: true
+    allowDNS: true
+    allowedIngressNamespaces:
+      - ingress-nginx
