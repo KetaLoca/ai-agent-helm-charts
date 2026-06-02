@@ -1,0 +1,46 @@
+{
+  "$schema": "https://docs.renovatebot.com/renovate-schema.json",
+  "extends": [
+    "config:recommended",
+    ":semanticCommits",
+    ":dependencyDashboard"
+  ],
+  "labels": ["dependencies"],
+  "schedule": ["before 6am on monday"],
+  "github-actions": {
+    "enabled": true,
+    "pinDigests": true
+  },
+  "helm-values": {
+    "enabled": true
+  },
+  "packageRules": [
+    {
+      "description": "Upstream agent images move fast and may break behavior — never auto-merge; review.",
+      "matchDatasources": ["docker"],
+      "matchPackageNames": [
+        "nousresearch/hermes-agent",
+        "ghcr.io/openclaw/openclaw"
+      ],
+      "automerge": false,
+      "addLabels": ["upstream-image", "needs-review"]
+    },
+    {
+      "description": "Group GitHub Actions bumps.",
+      "matchManagers": ["github-actions"],
+      "groupName": "github-actions"
+    }
+  ],
+  "customManagers": [
+    {
+      "customType": "regex",
+      "description": "Track the OpenClaw operator OCI chart version referenced in docs/specs.",
+      "fileMatch": ["(^|/)docs/.*\\.md$", "(^|/)specs/.*\\.md$", "(^|/)examples/.*"],
+      "matchStrings": [
+        "oci://ghcr.io/paperclipinc/charts/openclaw-operator[\\s\\S]*?--version\\s+(?<currentValue>[\\w.\\-]+)"
+      ],
+      "datasourceTemplate": "docker",
+      "depNameTemplate": "ghcr.io/paperclipinc/charts/openclaw-operator"
+    }
+  ]
+}

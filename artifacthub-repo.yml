@@ -1,0 +1,12 @@
+# Artifact Hub repository metadata.
+# Docs: https://artifacthub.io/docs/topics/repositories/
+#
+# This file lets you claim ownership of the repository on Artifact Hub so the
+# charts can be listed and (later) verified.
+#
+# TODO(maintainer): after adding the repo in Artifact Hub, paste the generated
+# repositoryID below, and confirm the public contact email.
+repositoryID: ""
+owners:
+  - name: KetaLoca
+    email: "" # TODO(maintainer): public contact email for Artifact Hub verification

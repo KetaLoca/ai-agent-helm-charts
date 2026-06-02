@@ -1,0 +1,8 @@
+# chart-testing (ct) configuration.
+# Used for lint + (optionally) install testing in Kind.
+target-branch: main
+chart-dirs:
+  - charts
+validate-maintainers: true
+check-version-increment: true
+helm-extra-args: --timeout 600s

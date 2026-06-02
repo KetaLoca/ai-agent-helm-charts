@@ -1,0 +1,27 @@
+# Helm packaging artifacts
+*.tgz
+charts/**/charts/
+charts/**/Chart.lock
+charts/**/tmpcharts/
+
+# helm-docs / rendered output
+__rendered__/
+*.rendered.yaml
+
+# Tooling / editors / OS
+.DS_Store
+Thumbs.db
+*.swp
+*~
+.idea/
+.vscode/
+.tool-versions.local
+
+# Python (yamllint / chart-testing helpers in CI)
+__pycache__/
+*.pyc
+.venv/
+
+# Local scratch
+/tmp/
+*.log

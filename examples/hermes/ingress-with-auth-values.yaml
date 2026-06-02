@@ -1,0 +1,30 @@
+# Ingress with authentication. ⚠️ Exposing an agent gateway is risky — only do
+# this behind real auth + TLS. This example uses ingress-nginx with an external
+# auth provider (oauth2-proxy / Authelia). Prefer a VPN / Tailscale / Cloudflare
+# Access if you can (see docs/security.md and the tailscale example).
+
+apiServer:
+  requireKey: true
+  # Key still required even behind the proxy:
+  # secrets.existingSecret: hermes-secrets
+
+ingress:
+  enabled: true
+  className: nginx
+  annotations:
+    # Terminate auth at the ingress via forward-auth (oauth2-proxy / Authelia):
+    nginx.ingress.kubernetes.io/auth-url: "https://auth.example.com/oauth2/auth"
+    nginx.ingress.kubernetes.io/auth-signin: "https://auth.example.com/oauth2/start?rd=$escaped_request_uri"
+    # TLS via cert-manager:
+    cert-manager.io/cluster-issuer: letsencrypt-prod
+    # Optional IP allow-list:
+    nginx.ingress.kubernetes.io/whitelist-source-range: "203.0.113.0/24"
+  hosts:
+    - host: hermes.example.com
+      paths:
+        - path: /
+          pathType: Prefix
+  tls:
+    - secretName: hermes-tls
+      hosts:
+        - hermes.example.com

@@ -1,0 +1,31 @@
+{{- if .Values.service.enabled -}}
+apiVersion: v1
+kind: Pod
+metadata:
+  name: "{{ include "hermes-agent.fullname" . }}-test-connection"
+  labels:
+    {{- include "hermes-agent.labels" . | nindent 4 }}
+  annotations:
+    "helm.sh/hook": test
+    "helm.sh/hook-delete-policy": before-hook-creation,hook-succeeded
+spec:
+  restartPolicy: Never
+  containers:
+    - name: tcp-check
+      image: busybox:1.36
+      command: ["sh", "-c"]
+      args:
+        - >-
+          nc -z -w5 {{ include "hermes-agent.fullname" . }} {{ .Values.service.port }}
+          && echo "gateway reachable on port {{ .Values.service.port }}"
+          || (echo "gateway NOT reachable"; exit 1)
+      securityContext:
+        allowPrivilegeEscalation: false
+        runAsNonRoot: true
+        runAsUser: 65534
+        capabilities:
+          drop:
+            - ALL
+        seccompProfile:
+          type: RuntimeDefault
+{{- end }}

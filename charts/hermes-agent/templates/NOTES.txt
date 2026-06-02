@@ -1,0 +1,64 @@
+Thank you for installing {{ .Chart.Name }} (chart {{ .Chart.Version }}).
+
+⚠️  UNOFFICIAL community chart — not affiliated with Nous Research. See TRADEMARKS.md.
+
+Release:   {{ .Release.Name }}
+Namespace: {{ .Release.Namespace }}
+Image:     {{ include "hermes-agent.image" . }}
+{{- if .Values.service.enabled }}
+
+The Hermes gateway is reachable INSIDE the cluster only (Service type {{ .Values.service.type }}).
+Reach it locally with port-forward (recommended — do NOT expose it publicly):
+
+  kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "hermes-agent.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
+
+Then call the OpenAI-compatible API at http://127.0.0.1:{{ .Values.service.port }}
+{{- end }}
+{{- if and .Values.service.enabled .Values.apiServer.requireKey }}
+{{- $hasKey := or (ne .Values.apiServer.key "") (ne .Values.secrets.existingSecret "") (and .Values.secrets.create (hasKey .Values.secrets.data "API_SERVER_KEY")) (gt (len .Values.extraEnvFrom) 0) }}
+{{- if not $hasKey }}
+
+‼️  No API key source detected, but apiServer.requireKey=true. The gateway needs
+   API_SERVER_KEY for non-loopback access. Provide one of:
+     --set apiServer.key=...                 (dev only)
+     --set secrets.existingSecret=my-secret  (prod; must contain API_SERVER_KEY)
+     extraEnvFrom: [...]                      (e.g. External Secrets)
+{{- end }}
+{{- end }}
+{{- $tag := .Values.image.tag }}
+{{- if and (eq .Values.image.digest "") (or (eq $tag "") (eq $tag "latest")) }}
+
+⚠️  You are tracking a floating image ({{ include "hermes-agent.image" . }}). For
+   production, pin image.digest to a specific digest (see docs/upgrade.md).
+{{- end }}
+{{- if .Values.ingress.enabled }}
+
+‼️  Ingress is ENABLED. Exposing the gateway/dashboard publicly is dangerous.
+   Ensure an API key + an identity-aware proxy (auth) + TLS are in place, or prefer
+   a VPN / Tailscale / Cloudflare Access instead — see docs/security.md.
+{{- end }}
+{{- if .Values.dashboard.enabled }}
+
+⚠️  Dashboard ENABLED (port {{ .Values.dashboard.port }}); it stores/exposes API keys & sessions.
+{{- if .Values.dashboard.insecure }}
+‼️  dashboard.insecure=true — the OAuth gate is DISABLED. Use only on a trusted network behind a VPN.
+{{- end }}
+{{- if not .Values.dashboard.service }}
+   It is NOT on the Service. Reach it with:
+     kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "hermes-agent.fullname" . }} {{ .Values.dashboard.port }}:{{ .Values.dashboard.port }}
+{{- end }}
+{{- end }}
+{{- if .Values.persistence.enabled }}
+
+Persistence: PVC at {{ .Values.persistence.mountPath }} ({{ .Values.persistence.size }}{{ if .Values.persistence.existingClaim }}, existing claim {{ .Values.persistence.existingClaim }}{{ end }}).
+{{- if .Values.persistence.retain }}
+The PVC is RETAINED on `helm uninstall` (helm.sh/resource-policy: keep). Delete it
+manually to remove data. Back it up — see docs/backup-restore.md.
+{{- end }}
+{{- else }}
+
+⚠️  Persistence DISABLED — sessions, memory, skills and keys live in an emptyDir and
+   are LOST on pod restart. Set persistence.enabled=true for anything real.
+{{- end }}
+
+Run `helm test {{ .Release.Name }}` to verify the gateway is reachable in-cluster.

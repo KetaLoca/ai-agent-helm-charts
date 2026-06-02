@@ -1,0 +1,19 @@
+# yamllint config. NOTE: Helm templates (charts/*/templates/*.yaml) are NOT valid
+# YAML (Go templating), so they are ignored here and validated via `helm template`
+# + kubeconform instead.
+extends: default
+
+rules:
+  line-length: disable
+  document-start: disable
+  comments:
+    min-spaces-from-content: 1
+  comments-indentation: disable
+  truthy:
+    check-keys: false
+  indentation:
+    spaces: 2
+    indent-sequences: consistent
+
+ignore: |
+  charts/*/templates/

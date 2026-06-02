@@ -1,0 +1,8 @@
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability
+    url: https://github.com/KetaLoca/ai-agent-helm-charts/security/advisories/new
+    about: Please report security issues privately (see SECURITY.md), not as public issues.
+  - name: Upstream agent (Hermes / OpenClaw) question
+    url: https://github.com/NousResearch/hermes-agent
+    about: This is an unofficial chart repo. For agent behavior, use the upstream project.

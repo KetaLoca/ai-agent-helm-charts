@@ -1,0 +1,23 @@
+# Expose the gateway ONLY on your tailnet using the Tailscale Kubernetes operator.
+# No public Ingress; access is gated by your Tailscale ACLs. Requires the Tailscale
+# operator installed in the cluster (https://tailscale.com/kb/1236/kubernetes-operator).
+#
+# The operator watches Services annotated with `tailscale.com/expose` and joins them
+# to your tailnet as a device.
+
+service:
+  type: ClusterIP
+  annotations:
+    tailscale.com/expose: "true"
+    tailscale.com/hostname: "hermes"
+
+ingress:
+  enabled: false
+
+apiServer:
+  requireKey: true
+  # Still require an API key as defense-in-depth:
+  # secrets.existingSecret: hermes-secrets
+
+# Tip: pair with a NetworkPolicy so only the tailscale operator namespace can reach
+# the pod. See docs/network-policies.md.

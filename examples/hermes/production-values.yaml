@@ -1,0 +1,60 @@
+# Production-leaning values. Review docs/production-checklist.md before shipping.
+# Key choices: pinned image digest, external secret, NetworkPolicy egress
+# allow-list, /dev/shm for browser tools, retained PVC.
+
+image:
+  # Pin a real digest (resolve the current upstream digest). Do NOT use a floating tag in prod.
+  # digest: "sha256:REPLACE_WITH_A_REAL_DIGEST"
+  tag: ""   # remove once you set digest above
+
+apiServer:
+  requireKey: true
+  # No inline key — provided by the Secret below.
+
+secrets:
+  # Pre-create this Secret (or use External Secrets — see docs/external-secrets.md).
+  # It MUST contain API_SERVER_KEY, plus any provider keys (ANTHROPIC_API_KEY, ...).
+  existingSecret: hermes-secrets
+
+persistence:
+  enabled: true
+  storageClass: ""      # set your fast RWO StorageClass
+  size: 20Gi
+  retain: true
+
+# Browser/Playwright tools need shared memory.
+shm:
+  enabled: true
+  size: 1Gi
+
+resources:
+  requests:
+    cpu: "500m"
+    memory: "2Gi"
+  limits:
+    memory: "4Gi"
+
+# Restrict egress to DNS + HTTPS. NOTE: native NetworkPolicy is L4-only (no hostnames);
+# for per-provider control use a CNI with FQDN policies (Cilium) — see docs/network-policies.md.
+networkPolicy:
+  enabled: true
+  allowDNS: true
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+
+# Keep it private. Reach it via port-forward or an identity-aware proxy / VPN.
+ingress:
+  enabled: false
+
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10000
+  runAsGroup: 10000
+  fsGroup: 10000
+  seccompProfile:
+    type: RuntimeDefault

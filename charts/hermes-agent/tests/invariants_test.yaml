@@ -1,0 +1,42 @@
+suite: invariants
+templates:
+  - templates/deployment.yaml
+release:
+  name: rel
+tests:
+  - it: rejects persistence with replicaCount > 1
+    set:
+      persistence.enabled: true
+      replicaCount: 2
+    asserts:
+      - failedTemplate: {}
+
+  - it: rejects ingress enabled without hosts
+    set:
+      ingress.enabled: true
+    asserts:
+      - failedTemplate: {}
+
+  - it: rejects an insecure dashboard without acknowledgement
+    set:
+      dashboard.enabled: true
+      dashboard.insecure: true
+    asserts:
+      - failedTemplate: {}
+
+  - it: rejects RollingUpdate with persistence
+    set:
+      persistence.enabled: true
+      strategy.type: RollingUpdate
+    asserts:
+      - failedTemplate: {}
+
+  - it: refuses an all-empty image reference (no silent latest)
+    chart:
+      appVersion: ""
+    set:
+      image.tag: ""
+      image.digest: ""
+    asserts:
+      - failedTemplate:
+          errorMessage: "hermes-agent: set image.tag, image.digest, or Chart.appVersion (refusing to default to :latest)"

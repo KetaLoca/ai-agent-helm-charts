@@ -1,0 +1,74 @@
+suite: deployment
+templates:
+  - templates/deployment.yaml
+release:
+  name: rel
+  namespace: default
+tests:
+  - it: defaults to a single replica with the Recreate strategy
+    asserts:
+      - equal:
+          path: spec.replicas
+          value: 1
+      - equal:
+          path: spec.strategy.type
+          value: Recreate
+
+  - it: applies the hardened pod security context
+    asserts:
+      - equal: { path: spec.template.spec.securityContext.runAsNonRoot, value: true }
+      - equal: { path: spec.template.spec.securityContext.runAsUser, value: 10000 }
+      - equal: { path: spec.template.spec.securityContext.fsGroup, value: 10000 }
+      - equal: { path: spec.template.spec.securityContext.seccompProfile.type, value: RuntimeDefault }
+
+  - it: hardens the container and drops all capabilities
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].securityContext.allowPrivilegeEscalation
+          value: false
+      - contains:
+          path: spec.template.spec.containers[0].securityContext.capabilities.drop
+          content: ALL
+
+  - it: does not auto-mount the service account token
+    asserts:
+      - equal: { path: spec.template.spec.automountServiceAccountToken, value: false }
+
+  - it: binds the API server to 0.0.0.0 when the service is enabled
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].env
+          content:
+            name: API_SERVER_HOST
+            value: "0.0.0.0"
+
+  - it: mounts persistence at /opt/data
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].volumeMounts[0].mountPath
+          value: /opt/data
+
+  - it: resolves the image from appVersion when no tag/digest is set
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "nousresearch/hermes-agent:latest"
+
+  - it: prefers digest over tag
+    set:
+      image.digest: "sha256:deadbeef"
+      image.tag: "ignored"
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].image
+          value: "nousresearch/hermes-agent@sha256:deadbeef"
+
+  - it: adds /dev/shm only when shm.enabled
+    set:
+      shm.enabled: true
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: dshm
+            mountPath: /dev/shm

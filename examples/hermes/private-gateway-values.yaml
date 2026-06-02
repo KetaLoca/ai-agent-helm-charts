@@ -1,0 +1,31 @@
+# Private gateway: reachable only inside the cluster, locked down with a
+# default-deny NetworkPolicy (egress allow-list for DNS + HTTPS only).
+# Access it from your laptop with `kubectl port-forward` — never an Ingress.
+
+apiServer:
+  requireKey: true
+  # Provide the key via a Secret in production:
+  # secrets.existingSecret: hermes-secrets
+
+service:
+  type: ClusterIP
+
+ingress:
+  enabled: false
+
+dashboard:
+  enabled: false
+
+networkPolicy:
+  enabled: true
+  allowDNS: true
+  # No ingress rules => nothing in-cluster may reach the pod except via the API
+  # (and port-forward, which proxies through the API server, not the pod network).
+  ingress: []
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443

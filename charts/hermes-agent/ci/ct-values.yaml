@@ -1,0 +1,17 @@
+# Values used by chart-testing (ct) and Kind smoke tests.
+# Exercises the NetworkPolicy + no-required-key path so `ct lint`/render covers it.
+# (Kind install uses a stubbed image — see specs/06-testing-strategy.md §8.)
+apiServer:
+  requireKey: false
+networkPolicy:
+  enabled: true
+  allowDNS: true
+  egress:
+    - to:
+        - ipBlock:
+            cidr: 0.0.0.0/0
+      ports:
+        - protocol: TCP
+          port: 443
+persistence:
+  size: 1Gi

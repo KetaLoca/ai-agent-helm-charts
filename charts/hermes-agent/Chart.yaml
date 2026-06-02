@@ -1,0 +1,33 @@
+apiVersion: v2
+name: hermes-agent
+description: >-
+  Unofficial community Helm chart for the Hermes Agent (nousresearch/hermes-agent).
+  Hardened and private by default. Not affiliated with Nous Research.
+type: application
+# Chart SemVer (independent of the upstream app version).
+version: 0.1.0
+# Upstream app/image version this chart targets. Upstream currently ships only
+# ":latest"; pin image.digest for production. See docs/upgrade.md (Q10).
+appVersion: "latest"
+kubeVersion: ">=1.25.0-0"
+home: https://github.com/KetaLoca/ai-agent-helm-charts
+sources:
+  - https://github.com/NousResearch/hermes-agent
+  - https://github.com/KetaLoca/ai-agent-helm-charts
+keywords:
+  - ai
+  - agent
+  - hermes
+  - llm
+maintainers:
+  - name: KetaLoca
+annotations:
+  artifacthub.io/license: MIT
+  artifacthub.io/prerelease: "true"
+  artifacthub.io/links: |
+    - name: source
+      url: https://github.com/KetaLoca/ai-agent-helm-charts
+    - name: upstream
+      url: https://github.com/NousResearch/hermes-agent
+  artifacthub.io/maintainers: |
+    - name: KetaLoca

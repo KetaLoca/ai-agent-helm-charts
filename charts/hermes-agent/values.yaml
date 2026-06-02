@@ -1,0 +1,210 @@
+# Default values for hermes-agent.
+# This chart is UNOFFICIAL and not affiliated with Nous Research. See TRADEMARKS.md.
+#
+# NOTE: ConfigMap-based file injection into /opt/data is intentionally NOT shipped
+# in v0.1.0 (it would collide with the persistence mount). Hermes manages
+# config.yaml / SOUL.md inside /opt/data itself; edit them in the data dir.
+
+# -- Number of Hermes instances. MUST stay 1 when persistence.enabled (single-writer /opt/data).
+replicaCount: 1
+
+image:
+  # -- Image repository.
+  repository: nousresearch/hermes-agent
+  # -- Image tag. Empty falls back to .Chart.AppVersion. Avoid "latest" in production.
+  tag: ""
+  # -- Pin by digest for immutability (takes precedence over tag). Recommended for production.
+  digest: ""
+  # -- Image pull policy.
+  pullPolicy: IfNotPresent
+# -- Image pull secrets, e.g. [{name: my-regcred}].
+imagePullSecrets: []
+
+# -- Override the container entrypoint. The image runs `gateway run` via s6 (/init).
+command: []
+# -- Override the container args (the long-running gateway process).
+args:
+  - gateway
+  - run
+
+apiServer:
+  # -- Require an API key whenever the Service is enabled. Strongly recommended.
+  requireKey: true
+  # -- DEV ONLY inline API key (sets API_SERVER_KEY). Prefer secrets.existingSecret / extraEnvFrom in production.
+  key: ""
+  # -- API_SERVER_CORS_ORIGINS. Empty = most restrictive (no CORS).
+  corsOrigins: ""
+
+# -- Plain (non-secret) environment variables as a name:value map.
+env: {}
+# -- Additional environment variables (full EnvVar objects; supports valueFrom).
+extraEnv: []
+# -- Additional envFrom sources (configMapRef / secretRef). Wire External Secrets here.
+extraEnvFrom: []
+
+secrets:
+  # -- DEV ONLY: render a Secret from `data` and load it via envFrom.
+  create: false
+  # -- Name of the chart-managed Secret (defaults to the release fullname).
+  name: ""
+  # -- PRODUCTION: reference a pre-existing Secret (loaded via envFrom).
+  existingSecret: ""
+  # -- Key/value data for the dev Secret (e.g. API_SERVER_KEY, ANTHROPIC_API_KEY).
+  data: {}
+
+persistence:
+  # -- Persist /opt/data (sessions, memory, skills, config, keys). Strongly recommended.
+  enabled: true
+  # -- Use an existing PVC instead of creating one.
+  existingClaim: ""
+  # -- StorageClass for the created PVC ("" = cluster default).
+  storageClass: ""
+  # -- Access modes for the PVC.
+  accessModes:
+    - ReadWriteOnce
+  # -- PVC size.
+  size: 10Gi
+  # -- Mount path inside the container (upstream default).
+  mountPath: /opt/data
+  # -- Keep the PVC on `helm uninstall` (adds helm.sh/resource-policy: keep).
+  retain: true
+
+shm:
+  # -- Mount an in-memory /dev/shm. Enable for Hermes browser/Playwright tools.
+  enabled: false
+  # -- Size of the /dev/shm emptyDir.
+  size: 1Gi
+
+service:
+  # -- Create a Service for the gateway.
+  enabled: true
+  # -- Service type. Keep ClusterIP; do not use LoadBalancer to expose publicly.
+  type: ClusterIP
+  # -- Service port (gateway).
+  port: 8642
+  # -- Container target port.
+  targetPort: 8642
+  # -- Extra Service annotations.
+  annotations: {}
+
+dashboard:
+  # -- Enable the web dashboard (HERMES_DASHBOARD=1). Stores/exposes API keys — keep off unless needed.
+  enabled: false
+  # -- Disable the dashboard OAuth gate (HERMES_DASHBOARD_INSECURE). DANGEROUS.
+  insecure: false
+  # -- Required acknowledgement: must be true if insecure is true.
+  insecureAcknowledgeRisk: false
+  # -- Dashboard port.
+  port: 9119
+  # -- Also expose the dashboard port on the Service. Default false → use port-forward.
+  service: false
+
+ingress:
+  # -- Expose via Ingress. DANGEROUS for an agent gateway — keep off; prefer a VPN / identity-aware proxy.
+  enabled: false
+  # -- IngressClass name.
+  className: ""
+  # -- Ingress annotations (add auth here if you must expose).
+  annotations: {}
+  # -- Hosts: list of {host, paths: [{path, pathType}]}.
+  hosts: []
+  # -- TLS: list of {secretName, hosts: []}.
+  tls: []
+
+# -- Resource requests/limits. Browser tools need >=2Gi. CPU limit intentionally unset (avoid throttling).
+resources:
+  requests:
+    cpu: 250m
+    memory: 1Gi
+  limits:
+    memory: 2Gi
+
+# -- Pod-level security context. UID 10000 = the non-root `hermes` user in the image.
+podSecurityContext:
+  runAsNonRoot: true
+  runAsUser: 10000
+  runAsGroup: 10000
+  fsGroup: 10000
+  fsGroupChangePolicy: OnRootMismatch
+  seccompProfile:
+    type: RuntimeDefault
+
+# -- Container-level security context. readOnlyRootFilesystem is off (s6-overlay writes to /run).
+securityContext:
+  allowPrivilegeEscalation: false
+  readOnlyRootFilesystem: false
+  capabilities:
+    drop:
+      - ALL
+
+serviceAccount:
+  # -- Create a ServiceAccount.
+  create: true
+  # -- ServiceAccount name (defaults to the release fullname).
+  name: ""
+  # -- ServiceAccount annotations.
+  annotations: {}
+  # -- Mount the SA token. Off by default — the agent doesn't need the K8s API.
+  automountServiceAccountToken: false
+
+networkPolicy:
+  # -- Create a NetworkPolicy (needs a CNI that enforces it). Default-deny + the rules below.
+  enabled: false
+  # -- Allow egress to kube-dns (port 53).
+  allowDNS: true
+  # -- Extra ingress rules (NetworkPolicyIngressRule entries).
+  ingress: []
+  # -- Extra egress rules (e.g. allow 443 to LLM providers). NOTE: K8s NP is L4-only (no hostnames).
+  egress: []
+
+probes:
+  # -- Liveness probe. Disabled by default until the upstream health endpoint is confirmed.
+  liveness:
+    enabled: false
+  # -- Readiness probe.
+  readiness:
+    enabled: false
+  # -- Startup probe.
+  startup:
+    enabled: false
+
+strategy:
+  # -- Deployment strategy. Forced to Recreate when persistence.enabled (single-writer RWO).
+  type: Recreate
+
+pdb:
+  # -- Create a PodDisruptionBudget. Beware: minAvailable:1 at replicas=1 blocks node drains.
+  enabled: false
+  # -- minAvailable (mutually exclusive with maxUnavailable).
+  minAvailable: ""
+  # -- maxUnavailable.
+  maxUnavailable: ""
+
+# -- Node selector.
+nodeSelector: {}
+# -- Tolerations.
+tolerations: []
+# -- Affinity.
+affinity: {}
+# -- Topology spread constraints (no-op at replicas=1; for future modes).
+topologySpreadConstraints: []
+# -- Extra pod annotations.
+podAnnotations: {}
+# -- Extra pod labels.
+podLabels: {}
+# -- PriorityClass name.
+priorityClassName: ""
+# -- Termination grace period (seconds).
+terminationGracePeriodSeconds: 30
+
+# -- Override the chart name portion of resource names.
+nameOverride: ""
+# -- Override the full resource name.
+fullnameOverride: ""
+
+# -- Extra volumes to add to the pod.
+extraVolumes: []
+# -- Extra volume mounts for the container.
+extraVolumeMounts: []
+# -- Raw extra manifests (rendered as-is). Advanced escape hatch.
+extraObjects: []

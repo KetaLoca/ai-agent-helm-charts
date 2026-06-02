@@ -1,0 +1,17 @@
+# Minimal dev install — NOT for production.
+# - Uses an inline API key (ends up in the release; dev only).
+# - Tracks the floating image tag (pin a digest for prod).
+#
+#   helm install hermes oci://ghcr.io/ketaloca/charts/hermes-agent \
+#     -f examples/hermes/minimal-values.yaml
+#
+# Reach it locally:
+#   kubectl port-forward svc/hermes-hermes-agent 8642:8642
+
+apiServer:
+  # Dev-only inline key (min 8 chars). Use existingSecret in production.
+  key: "dev-only-change-me-please"
+
+persistence:
+  enabled: true
+  size: 5Gi

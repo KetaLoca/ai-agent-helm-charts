@@ -1,0 +1,6 @@
+# Default owner for everything in the repo.
+* @KetaLoca
+
+# Charts and specs get extra scrutiny.
+/charts/   @KetaLoca
+/specs/    @KetaLoca
