@@ -66,6 +66,9 @@ jobs:
           shopt -s nullglob
           pkgs=(.cr-release-packages/*.tgz)
           if [ ${#pkgs[@]} -eq 0 ]; then echo "Nothing to sign."; exit 0; fi
+          # cosign needs its own registry auth to PUSH the signature (helm's login
+          # doesn't populate the docker config cosign reads).
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
           for p in "${pkgs[@]}"; do
             base="$(basename "${p}" .tgz)"   # <chart>-<version>
             name="${base%-*}"; ver="${base##*-}"
