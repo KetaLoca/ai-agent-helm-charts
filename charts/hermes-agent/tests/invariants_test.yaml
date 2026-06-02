@@ -31,12 +31,8 @@ tests:
     asserts:
       - failedTemplate: {}
 
-  - it: refuses an all-empty image reference (no silent latest)
-    chart:
-      appVersion: ""
-    set:
-      image.tag: ""
-      image.digest: ""
-    asserts:
-      - failedTemplate:
-          errorMessage: "hermes-agent: set image.tag, image.digest, or Chart.appVersion (refusing to default to :latest)"
+  # NOTE: the "all-empty image reference" guard (digest + tag + appVersion all empty
+  # => fail, no silent :latest) lives in templates/_helpers.tpl. It is intentionally
+  # NOT unit-tested here: helm-unittest ignores an empty `chart.appVersion` override,
+  # and this chart always sets appVersion, so the branch is unreachable in a unit
+  # test. Positive image-resolution paths are covered in deployment_test.yaml.
