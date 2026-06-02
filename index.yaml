@@ -13,6 +13,39 @@ entries:
       artifacthub.io/prerelease: "true"
     apiVersion: v2
     appVersion: latest
+    created: "2026-06-02T14:41:08.038112983Z"
+    description: Unofficial community Helm chart for the Hermes Agent (nousresearch/hermes-agent).
+      Hardened and private by default. Not affiliated with Nous Research.
+    digest: 4a544f5d7b3da9b04d328ab859abeb9bd6cff4273fb9c1eb9c2da72e4213db8f
+    home: https://github.com/KetaLoca/ai-agent-helm-charts
+    keywords:
+    - ai
+    - agent
+    - hermes
+    - llm
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: KetaLoca
+    name: hermes-agent
+    sources:
+    - https://github.com/NousResearch/hermes-agent
+    - https://github.com/KetaLoca/ai-agent-helm-charts
+    type: application
+    urls:
+    - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/hermes-agent-0.1.2/hermes-agent-0.1.2.tgz
+    version: 0.1.2
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: source
+          url: https://github.com/KetaLoca/ai-agent-helm-charts
+        - name: upstream
+          url: https://github.com/NousResearch/hermes-agent
+      artifacthub.io/maintainers: |
+        - name: KetaLoca
+      artifacthub.io/prerelease: "true"
+    apiVersion: v2
+    appVersion: latest
     created: "2026-06-02T13:56:36.341076169Z"
     description: Unofficial community Helm chart for the Hermes Agent (nousresearch/hermes-agent).
       Hardened and private by default. Not affiliated with Nous Research.
@@ -142,4 +175,4 @@ entries:
     urls:
     - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/openclaw-instance-0.1.0/openclaw-instance-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-02T13:56:36.575427564Z"
+generated: "2026-06-02T14:41:08.03813062Z"
