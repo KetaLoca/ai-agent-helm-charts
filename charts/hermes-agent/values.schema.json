@@ -138,7 +138,8 @@
     "extraVolumes": { "type": "array" },
     "extraVolumeMounts": { "type": "array" },
     "extraObjects": { "type": "array" },
-    "scratchPaths": { "type": "array", "items": { "type": "string" } }
+    "scratchPaths": { "type": "array", "items": { "type": "string" } },
+    "scratchSizeLimit": { "type": "string" }
   },
   "if": {
     "properties": {

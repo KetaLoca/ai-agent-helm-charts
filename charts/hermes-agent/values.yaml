@@ -129,9 +129,9 @@ podSecurityContext:
   seccompProfile:
     type: RuntimeDefault
 
-# -- Container-level security context. readOnlyRootFilesystem is off by default
-# (s6-overlay PID 1 writes to /run). Set it true to harden — the chart then mounts
-# writable emptyDir scratch at `scratchPaths`. EXPERIMENTAL: validate against your image.
+# -- Container-level security context. The chart always mounts writable scratch (see
+# scratchPaths) so the image's s6-overlay (PID 1) can boot as the non-root user. Set
+# readOnlyRootFilesystem: true to also make the rest of the rootfs read-only (validate per image).
 securityContext:
   allowPrivilegeEscalation: false
   readOnlyRootFilesystem: false
@@ -139,10 +139,13 @@ securityContext:
     drop:
       - ALL
 
-# -- Writable scratch paths mounted as emptyDir, ONLY when securityContext.readOnlyRootFilesystem is true.
+# -- Writable tmpfs (emptyDir medium=Memory) ALWAYS mounted at these paths. `/run` is
+# REQUIRED: the upstream s6-overlay (PID 1) expects a writable tmpfs /run as the non-root
+# user, or the container fails to start. Add paths (e.g. /tmp) when enabling readOnlyRootFilesystem.
 scratchPaths:
   - /run
-  - /tmp
+# -- Size limit for each scratch tmpfs (counts against the pod memory limit).
+scratchSizeLimit: 128Mi
 
 serviceAccount:
   # -- Create a ServiceAccount.
@@ -164,16 +167,34 @@ networkPolicy:
   # -- Extra egress rules (e.g. allow 443 to LLM providers). NOTE: K8s NP is L4-only (no hostnames).
   egress: []
 
+# -- Probes hit the gateway's HTTP /health endpoint on the `gateway` port (8642). It
+# returns 200 without auth (verified against the upstream image).
 probes:
-  # -- Liveness probe. Disabled by default until the upstream health endpoint is confirmed.
-  liveness:
-    enabled: false
-  # -- Readiness probe.
   readiness:
-    enabled: false
-  # -- Startup probe.
+    enabled: true
+    httpGet:
+      path: /health
+      port: gateway
+    initialDelaySeconds: 10
+    periodSeconds: 10
+    timeoutSeconds: 3
+    failureThreshold: 3
+  liveness:
+    enabled: true
+    httpGet:
+      path: /health
+      port: gateway
+    initialDelaySeconds: 30
+    periodSeconds: 15
+    timeoutSeconds: 3
+    failureThreshold: 5
   startup:
-    enabled: false
+    enabled: true
+    httpGet:
+      path: /health
+      port: gateway
+    periodSeconds: 5
+    failureThreshold: 60
 
 strategy:
   # -- Deployment strategy. Forced to Recreate when persistence.enabled (single-writer RWO).

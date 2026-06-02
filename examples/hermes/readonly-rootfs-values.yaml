@@ -7,8 +7,8 @@
 securityContext:
   readOnlyRootFilesystem: true
 
-# Add more writable paths here if your image needs them:
-# scratchPaths:
-#   - /run
-#   - /tmp
-#   - /var/cache
+# With a read-only rootfs, mount writable tmpfs for every path the image writes to.
+# /run is required for s6; add /tmp (and any others your image uses) here:
+scratchPaths:
+  - /run
+  - /tmp

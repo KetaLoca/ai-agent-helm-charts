@@ -26,12 +26,12 @@ chart forbids `replicaCount > 1` with persistence and uses the `Recreate` strate
 
 ```bash
 # OCI (no helm repo add needed)
-helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.1 \
+helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.2 \
   -f my-values.yaml
 
 # …or the classic repo
 helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
-helm install my-hermes ketaloca/hermes-agent --version 0.1.1 -f my-values.yaml
+helm install my-hermes ketaloca/hermes-agent --version 0.1.2 -f my-values.yaml
 ```
 
 Reach it locally — the gateway is **not** exposed publicly by default:
@@ -59,7 +59,7 @@ See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
   for production.
 - **Hardened by default** — `runAsNonRoot` (UID 10000), `allowPrivilegeEscalation: false`,
   `capabilities: drop [ALL]`, `seccompProfile: RuntimeDefault`, no auto-mounted SA token.
-  `readOnlyRootFilesystem` is **off** because s6-overlay (PID 1) writes to `/run`.
+  `readOnlyRootFilesystem` is **off** by default (opt-in); the chart always mounts a tmpfs `/run` so the image's s6-overlay (PID 1) boots as the non-root user.
 - **Dashboard off by default** — it stores/exposes API keys; opt-in and never on a
   public Service.
 
@@ -104,7 +104,8 @@ See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
 | `serviceAccount.automountServiceAccountToken` | `false` | Agent doesn't need the K8s API. |
 | `networkPolicy.enabled` | `false` | Default-deny + `allowDNS` + your rules (needs enforcing CNI). |
 | `networkPolicy.allowDNS` / `ingress` / `egress` | `true` / `[]` / `[]` | NP is L4-only (no hostnames). |
-| `probes.{liveness,readiness,startup}.enabled` | `false` | Off until the health path is confirmed. |
+| `probes.{liveness,readiness,startup}` | enabled on `/health` | HTTP probes vs the gateway `/health` (port 8642, no auth). |
+| `scratchPaths` / `scratchSizeLimit` | `[/run]` / `128Mi` | Always-mounted tmpfs scratch; `/run` is required for s6-overlay to boot. |
 | `strategy.type` | `Recreate` | Forced with persistence. |
 | `pdb.enabled` | `false` | Beware `minAvailable:1` at replicas=1 blocks drains. |
 | `nodeSelector` / `tolerations` / `affinity` / `topologySpreadConstraints` | `{}` / `[]` / `{}` / `[]` | |
@@ -127,7 +128,7 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | App (image) | Min K8s | Helm |
 |---|---|---|---|
-| `0.1.1` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` |
+| `0.1.2` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` |
 
 \* No stable upstream tag confirmed; pin `image.digest`. See [docs/upgrade.md](../../docs/upgrade.md).
 

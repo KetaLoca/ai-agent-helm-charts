@@ -7,8 +7,9 @@
 - **`runAsNonRoot` / permission denied writing `/opt/data`:** the volume must be
   writable by UID 10000. The chart sets `fsGroup: 10000`; if you reuse an old PVC
   with root-owned files, fix ownership or keep `fsGroupChangePolicy: OnRootMismatch`.
-- Do **not** set `securityContext.readOnlyRootFilesystem: true` — s6-overlay (PID 1)
-  writes to `/run`.
+- `securityContext.readOnlyRootFilesystem: true` is supported — the chart always mounts
+  tmpfs scratch at `scratchPaths` (`/run` by default, required for s6-overlay). Add `/tmp`
+  (and any other paths your image writes to) when enabling it.
 
 ## PVC stuck Pending
 - No default `StorageClass`, or it can't provide `ReadWriteOnce`. Set

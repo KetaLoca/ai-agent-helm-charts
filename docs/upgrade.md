@@ -4,7 +4,7 @@
 
 | Chart | App (image) | Min K8s | Helm |
 |---|---|---|---|
-| `0.1.1` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` (4 supported) |
+| `0.1.2` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` (4 supported) |
 
 \* See "Image pinning" below.
 

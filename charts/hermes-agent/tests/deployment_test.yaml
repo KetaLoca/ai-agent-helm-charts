@@ -73,28 +73,33 @@ tests:
             name: dshm
             mountPath: /dev/shm
 
-  - it: mounts writable scratch emptyDirs when readOnlyRootFilesystem is enabled
+  - it: always mounts a writable tmpfs /run scratch (s6-overlay needs it as non-root)
+    asserts:
+      - contains:
+          path: spec.template.spec.containers[0].volumeMounts
+          content:
+            name: scratch-0
+            mountPath: /run
+      - equal:
+          path: spec.template.spec.volumes[1].name
+          value: scratch-0
+      - equal:
+          path: spec.template.spec.volumes[1].emptyDir.medium
+          value: Memory
+
+  - it: enables a readiness probe on the /health endpoint by default
+    asserts:
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.path
+          value: /health
+      - equal:
+          path: spec.template.spec.containers[0].readinessProbe.httpGet.port
+          value: gateway
+
+  - it: still sets readOnlyRootFilesystem when opted in
     set:
       securityContext.readOnlyRootFilesystem: true
     asserts:
       - equal:
           path: spec.template.spec.containers[0].securityContext.readOnlyRootFilesystem
           value: true
-      - contains:
-          path: spec.template.spec.containers[0].volumeMounts
-          content:
-            name: scratch-0
-            mountPath: /run
-      - contains:
-          path: spec.template.spec.volumes
-          content:
-            name: scratch-0
-            emptyDir: {}
-
-  - it: has no scratch mounts by default (read-only rootfs off)
-    asserts:
-      - notContains:
-          path: spec.template.spec.containers[0].volumeMounts
-          content:
-            name: scratch-0
-            mountPath: /run

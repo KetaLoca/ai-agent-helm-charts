@@ -4,6 +4,21 @@ All notable changes to the `hermes-agent` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of `appVersion`).
 
+## [0.1.2] - 2026-06-02
+
+### Fixed
+- **Boots the real upstream image.** The image's s6-overlay (PID 1) needs a writable
+  tmpfs `/run` as the non-root user; the chart now ALWAYS mounts an `emptyDir{medium:
+  Memory}` at `scratchPaths` (default `[/run]`). Without it the pod crash-looped with
+  `s6-overlay-suexec: fatal ... /run ... unworkable permissions` (affected 0.1.0/0.1.1).
+  Verified end-to-end on a live k3s cluster (non-root uid 10000, gateway `/health` 200).
+
+### Added
+- Liveness/readiness/startup probes are **enabled by default** against the gateway's
+  `/health` endpoint (port 8642, HTTP 200, no auth) — also fixes pods reporting Ready
+  while crash-looping.
+- `scratchSizeLimit` value (default `128Mi`) for the scratch tmpfs mounts.
+
 ## [0.1.1] - 2026-06-02
 
 ### Added
