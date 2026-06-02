@@ -27,7 +27,7 @@
 
 1. One-line description + **disclaimer block** (verbatim from `00` §5).
 2. Charts table: name, what it deploys, status (alpha), Artifact Hub/OCI link.
-3. **Quick start (safe by default):** `helm install` from OCI + immediate `kubectl port-forward` (NOT ingress) to reach it.
+3. **Quick start (safe by default):** install from **OCI** (`oci://ghcr.io/ketaloca/charts/...`) **or** the classic repo (`helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts`) + immediate `kubectl port-forward` (NOT ingress) to reach it.
 4. Security posture in 5 bullets (no public exposure, external secrets, single-writer, pinned images, hardened context) → link to `docs/security.md`.
 5. Compatibility matrix per chart.
 6. Links: per-chart READMEs, docs, contributing, security, license.

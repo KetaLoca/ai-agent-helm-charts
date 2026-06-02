@@ -61,15 +61,15 @@
 ## Phase 4 — Release & distribution
 
 **Tasks (per `05`)**
-- `release.yaml`: tag-driven `helm package`+`push` to `oci://ghcr.io/<OWNER>/charts`; GitHub Release from CHANGELOG.
+- `release.yaml`: tag-driven `helm package`+`push` to `oci://ghcr.io/ketaloca/charts`; GitHub Release from CHANGELOG.
 - Make GHCR packages public; document consume commands.
 - `artifacthub-repo.yml` + per-chart Artifact Hub annotations; verify listing.
 - Renovate fully configured (image/appVersion/actions/operator-version).
 - `security-scan.yaml` (Trivy config/secret + weekly schedule).
-- Decide classic `index.yaml` channel (yes/no).
+- Publish the classic repo via `chart-releaser` (`index.yaml` on GitHub Pages at `ketaloca.github.io/ai-agent-helm-charts`) **alongside** OCI; enable Pages; keep both in sync in `release.yaml`.
 
 **Acceptance**
-- Pushing `hermes-agent-vX.Y.Z` publishes a pullable OCI chart; `helm install oci://...` works.
+- Pushing `hermes-agent-vX.Y.Z` publishes a pullable OCI chart (`helm install oci://...`) **and** updates the classic Pages repo (`helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts && helm install ketaloca/hermes-agent`).
 - Artifact Hub shows both charts with disclaimer + values + links.
 - Renovate opens a test bump PR.
 - Security scan runs and uploads SARIF.
@@ -112,7 +112,7 @@
 | R11 | **Maintenance burden** (two fast-moving upstreams, multi-version matrix). | Medium | Keep charts minimal; lean on operator for OpenClaw; automate via Renovate + CI; compatibility tables; small reviewable templates. |
 | R12 | **Agent autonomy risks** (`selfConfigure`/`autoUpdate`/tools). | Medium | Off by default; documented as security-relevant opt-ins. |
 | R13 | **Secret sprawl across tenants.** | Low/Med | Per-release secrets; namespace-per-tenant guidance; External Secrets. |
-| R14 | **GHCR owner/path unset** blocks release wiring. | Low | Resolve owner early (open question Q1); parametrize `<OWNER>`. |
+| R14 | **GHCR owner/path unset** blocks release wiring. | Low | Resolved: owner = `ketaloca`; placeholder filled across specs. |
 | R15 | **Operator org ambiguity** (`paperclipinc` vs `openclaw-rocks`). | Low | Verify canonical OCI path/version at Phase 3; document both; pin one. |
 
 ## Fields deliberately kept flexible (forward-compat)
@@ -122,12 +122,12 @@
 
 ## Open questions (need a human decision)
 
-- **Q1 — GHCR owner. RESOLVED (2026-06-02):** maintainer's **personal GitHub account**. *Still needed:* the exact GitHub handle to fill `<OWNER>` — blocks Phase 4 wiring until provided.
+- **Q1 — GHCR owner. RESOLVED (2026-06-02):** owner = **`ketaloca`** (GitHub `KetaLoca`; GHCR paths lowercased to `ghcr.io/ketaloca/...`). Placeholder filled across specs; Phase 4 wiring unblocked.
 - **Q2 — License. RESOLVED (2026-06-02): MIT.**
 - **Q3 — Repo name. RESOLVED (2026-06-02):** keep `ai-agent-helm-charts`.
 - **Q4 — Spec/doc language.** English specs + English docs (current default) — OK? Want a Spanish README translation in scope?
 - **Q5 — OpenClaw CI depth. RESOLVED (2026-06-02):** operator-in-Kind is the gate; CRD-only is the upstream-outage fallback only.
-- **Q6 — Distribution channel.** OCI only, or also classic `index.yaml` via GitHub Pages?
+- **Q6 — Distribution channel. RESOLVED (2026-06-02):** **both** — OCI primary (`oci://ghcr.io/ketaloca/charts`) + classic GitHub Pages repo (`helm repo add`). Artifact Hub indexes them for discovery.
 - **Q7 — Hermes probes.** OK to ship probes off until the health path is verified, then default readiness on?
 - **Q8 — cosign timing.** Sign from v0.1.0, or defer to Phase 5 as planned?
 - **Q9 — Scope confirm.** Two charts only for v0.x (no operator chart, no umbrella) — confirmed?

@@ -15,7 +15,7 @@ type: application
 version: 0.1.0            # chart SemVer
 appVersion: ""           # TODO(impl): pin a verified-good upstream tag, e.g. "2026.x.y"
 kubeVersion: ">=1.25.0-0"
-home: https://github.com/<OWNER>/ai-agent-helm-charts
+home: https://github.com/KetaLoca/ai-agent-helm-charts
 sources:
   - https://github.com/NousResearch/hermes-agent
 keywords: [ai, agent, hermes, llm]

@@ -76,12 +76,12 @@ Steps:
 2. `helm lint` + re-render (defense in depth).
 3. `helm package charts/<chart> --version <X.Y.Z>` (version must equal the tag; verify).
 4. `helm registry login ghcr.io` (using `GITHUB_TOKEN`).
-5. `helm push <chart>-<X.Y.Z>.tgz oci://ghcr.io/<OWNER>/charts`.
-6. **(Future) cosign:** `cosign sign --yes ghcr.io/<OWNER>/charts/<chart>:<X.Y.Z>` (keyless OIDC); record fingerprint for `artifacthub.io/signKey`.
+5. `helm push <chart>-<X.Y.Z>.tgz oci://ghcr.io/ketaloca/charts`.
+6. **(Future) cosign:** `cosign sign --yes ghcr.io/ketaloca/charts/<chart>:<X.Y.Z>` (keyless OIDC); record fingerprint for `artifacthub.io/signKey`.
 7. Create a **GitHub Release** with notes generated from the chart `CHANGELOG.md`; attach the `.tgz` + `provenance`/SBOM (future).
 8. Ensure the GHCR package visibility is **public** (one-time manual setup + documented).
 
-**Optional secondary channel:** a `gh-pages` classic repo via `helm/chart-releaser-action` (`cr`) producing `index.yaml`. Decide at impl; **OCI is primary**. If enabled, add an `install via classic repo` doc.
+**Secondary channel (chosen 2026-06-02):** also publish a classic repo via `helm/chart-releaser-action` (`cr`) → `index.yaml` on **GitHub Pages** at `https://ketaloca.github.io/ai-agent-helm-charts`, enabling `helm repo add ketaloca …`. **OCI stays primary**; both channels are produced by the same release run and kept in sync. Docs document both install methods.
 
 ## 7. Dependency automation
 
@@ -104,7 +104,7 @@ Steps:
 
 ## 10. Open items for impl
 
-- **TODO(maintainer):** GHCR `<OWNER>` (user vs dedicated org) — drives all OCI paths.
-- **TODO:** decide classic `index.yaml` channel yes/no.
+- **Resolved (2026-06-02):** GHCR owner = `ketaloca` (personal account; GHCR path lowercased) — drives all OCI paths.
+- **Resolved (2026-06-02):** publish **both** — OCI (primary) + classic GitHub Pages repo (`chart-releaser`).
 - **Resolved (2026-06-02):** gate PRs on operator-in-Kind; CRD-only is the upstream-outage fallback only.
 - **TODO:** pin tool versions (`helm`, `ct`, `kubeconform`, `helm-unittest`, Trivy) in a central place (`.tool-versions`/workflow env).

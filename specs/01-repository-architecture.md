@@ -150,19 +150,19 @@ charts/<chart>/
 
 Helm charts are published as **OCI artifacts** to GitHub Container Registry.
 
-- Registry path pattern: `oci://ghcr.io/<OWNER>/charts/<chart>` where `<OWNER>` is the maintainer's **personal GitHub account** (decided 2026-06-02). **TODO(maintainer): provide the exact GitHub handle** — `<OWNER>` stays parametrized until then (blocks first release wiring).
+- Registry path pattern: `oci://ghcr.io/ketaloca/charts/<chart>` — owner **`ketaloca`** (GitHub `KetaLoca`, **lowercased because OCI/GHCR references must be lowercase**). `<chart>` ∈ {`hermes-agent`, `openclaw-instance`}. Resolved 2026-06-02.
 - Publish on tag push (`<chart>-vX.Y.Z`) via `release.yaml`:
   ```bash
   helm package charts/<chart>
-  helm push <chart>-X.Y.Z.tgz oci://ghcr.io/<OWNER>/charts
+  helm push <chart>-X.Y.Z.tgz oci://ghcr.io/ketaloca/charts
   ```
 - Consume:
   ```bash
-  helm install my-release oci://ghcr.io/<OWNER>/charts/hermes-agent --version X.Y.Z
+  helm install my-release oci://ghcr.io/ketaloca/charts/hermes-agent --version X.Y.Z
   ```
 - Packages must be set **public** in GHCR package settings.
 - Future: cosign keyless signing (`cosign sign` the OCI digest) + attach provenance (see `05`).
-- **Optional secondary channel:** classic HTTP `index.yaml` repo via GitHub Pages + `chart-releaser` (`cr`). Decide in `05`; OCI is the primary channel.
+- **Secondary channel (chosen 2026-06-02):** classic HTTP `index.yaml` repo via GitHub Pages + `chart-releaser` (`cr`), giving the familiar `helm repo add https://ketaloca.github.io/ai-agent-helm-charts`. **OCI is primary; the classic repo is published alongside it** (both kept in sync by `release.yaml`).
 
 ## 8. Artifact Hub readiness
 
@@ -176,7 +176,7 @@ Helm charts are published as **OCI artifacts** to GitHub Container Registry.
         description: ...
     artifacthub.io/links: |
       - name: source
-        url: https://github.com/<OWNER>/ai-agent-helm-charts
+        url: https://github.com/ketaloca/ai-agent-helm-charts
     artifacthub.io/maintainers: |
       - name: <maintainer>
         email: <email>

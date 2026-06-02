@@ -7,7 +7,7 @@
 | # | Decision | Specs updated |
 |---|---|---|
 | D1 | **License = MIT** (was "recommend Apache-2.0"). Trade-off noted: no patent grant. | `01` §6/§8, `02`/`03` `Chart.yaml`, `08` Phase 1 + Q2. |
-| D2 | **GHCR owner = maintainer's personal GitHub account.** Exact handle still needed to fill `<OWNER>`. | `01` §7, `08` Q1. |
+| D2 | **GHCR owner = `ketaloca`** (personal account; GitHub `KetaLoca`, GHCR lowercased). Handle provided; placeholders filled. | `01` §7, `05`, `08` Q1. |
 | D3 | **OpenClaw CI = operator-in-Kind** (chosen gate); CRD-only is an upstream-outage fallback only. | `05` §3/§10, `06` §7, `08` Phase 3 + Q5. |
 | D4 | **Repo name kept** `ai-agent-helm-charts`. | `08` Q3. |
 
@@ -36,9 +36,9 @@
 
 Carried from `08` (Q1's account is decided; its handle is still pending):
 
-- **Q1 (handle):** exact personal GitHub handle to fill `<OWNER>` — blocks Phase 4 release wiring.
+- **Q1 (handle): RESOLVED (2026-06-02)** — owner handle is `ketaloca`; placeholder filled across specs.
 - **Q4:** Spanish translation of README/quick-start in scope, or English-only for v0.x?
-- **Q6:** distribution — OCI only, or also a classic `index.yaml` (GitHub Pages) channel?
+- **Q6: RESOLVED (2026-06-02)** — both: OCI primary + classic GitHub Pages repo (+ Artifact Hub for discovery).
 - **Q7:** ship Hermes probes off until the health path is verified, then default readiness on — OK?
 - **Q8:** cosign signing from v0.1.0, or defer to Phase 5 as planned?
 - **Q9:** confirm v0.x scope = two charts only (no operator chart, no umbrella).

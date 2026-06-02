@@ -17,7 +17,7 @@ type: application
 version: 0.1.0
 appVersion: ""          # TODO(impl): the OpenClaw APP version this maps cleanly to, e.g. "2026.2.3"
 kubeVersion: ">=1.28.0-0"   # operator requires >=1.28
-home: https://github.com/<OWNER>/ai-agent-helm-charts
+home: https://github.com/KetaLoca/ai-agent-helm-charts
 sources:
   - https://github.com/paperclipinc/openclaw-operator   # TODO(impl): confirm canonical org
 keywords: [ai, agent, openclaw, operator, crd]
