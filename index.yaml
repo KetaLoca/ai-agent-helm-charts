@@ -13,6 +13,39 @@ entries:
       artifacthub.io/prerelease: "true"
     apiVersion: v2
     appVersion: latest
+    created: "2026-06-02T13:56:36.341076169Z"
+    description: Unofficial community Helm chart for the Hermes Agent (nousresearch/hermes-agent).
+      Hardened and private by default. Not affiliated with Nous Research.
+    digest: f22500ebc6551660ef0047d806ebfb67f66f847f4fe6599615d36130bbf40ba3
+    home: https://github.com/KetaLoca/ai-agent-helm-charts
+    keywords:
+    - ai
+    - agent
+    - hermes
+    - llm
+    kubeVersion: '>=1.25.0-0'
+    maintainers:
+    - name: KetaLoca
+    name: hermes-agent
+    sources:
+    - https://github.com/NousResearch/hermes-agent
+    - https://github.com/KetaLoca/ai-agent-helm-charts
+    type: application
+    urls:
+    - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/hermes-agent-0.1.1/hermes-agent-0.1.1.tgz
+    version: 0.1.1
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: source
+          url: https://github.com/KetaLoca/ai-agent-helm-charts
+        - name: upstream
+          url: https://github.com/NousResearch/hermes-agent
+      artifacthub.io/maintainers: |
+        - name: KetaLoca
+      artifacthub.io/prerelease: "true"
+    apiVersion: v2
+    appVersion: latest
     created: "2026-06-02T13:45:16.489386223Z"
     description: Unofficial community Helm chart for the Hermes Agent (nousresearch/hermes-agent).
       Hardened and private by default. Not affiliated with Nous Research.
@@ -35,6 +68,43 @@ entries:
     - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/hermes-agent-0.1.0/hermes-agent-0.1.0.tgz
     version: 0.1.0
   openclaw-instance:
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: source
+          url: https://github.com/KetaLoca/ai-agent-helm-charts
+        - name: operator
+          url: https://github.com/paperclipinc/openclaw-operator
+      artifacthub.io/maintainers: |
+        - name: KetaLoca
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "true"
+    apiVersion: v2
+    appVersion: 2026.2.3
+    created: "2026-06-02T13:56:36.575419829Z"
+    description: Unofficial community Helm chart that declares an OpenClawInstance
+      custom resource (openclaw.rocks/v1alpha1) for the OpenClaw Kubernetes Operator.
+      Requires the operator and its CRDs to be installed already. Not affiliated with
+      OpenClaw / Paperclip Inc.
+    digest: 67096c21cf4d267cd8d3e8b233fb065135490f74828bd415990cf0dc227d4eb3
+    home: https://github.com/KetaLoca/ai-agent-helm-charts
+    keywords:
+    - ai
+    - agent
+    - openclaw
+    - operator
+    - crd
+    kubeVersion: '>=1.28.0-0'
+    maintainers:
+    - name: KetaLoca
+    name: openclaw-instance
+    sources:
+    - https://github.com/paperclipinc/openclaw-operator
+    - https://github.com/KetaLoca/ai-agent-helm-charts
+    type: application
+    urls:
+    - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/openclaw-instance-0.1.1/openclaw-instance-0.1.1.tgz
+    version: 0.1.1
   - annotations:
       artifacthub.io/license: MIT
       artifacthub.io/links: |
@@ -72,4 +142,4 @@ entries:
     urls:
     - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/openclaw-instance-0.1.0/openclaw-instance-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-02T13:45:16.759401943Z"
+generated: "2026-06-02T13:56:36.575427564Z"
