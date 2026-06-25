@@ -30,7 +30,7 @@ escape hatch for fields it doesn't model yet.
 # Verify the operator/CRD first:
 kubectl get crd openclawinstances.openclaw.rocks
 
-helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.2.0 \
+helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.2.1 \
   -f my-values.yaml
 # or: helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
 
@@ -43,7 +43,7 @@ No operator in the cluster yet? Bundle and install it in the same release
 (**single-tenant / once-per-cluster** — the operator is a cluster-wide singleton):
 
 ```bash
-helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.2.0 \
+helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.2.1 \
   --set operator.install=true
 ```
 
@@ -123,7 +123,7 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | CRD API | Operator | App image | Min K8s |
 |---|---|---|---|---|
-| `0.2.0` | `openclaw.rocks/v1alpha1` | `openclaw-operator` `0.36.5` (bundled when `operator.install=true`) | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` |
+| `0.2.1` | `openclaw.rocks/v1alpha1` | `openclaw-operator` `0.36.5` (bundled when `operator.install=true`) | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` |
 
 Unknown/newer CRD fields → route through `extraSpec` (no chart release needed). The
 targeted CRD is vendored under `crd-schema/` for reference.
@@ -135,3 +135,15 @@ helm uninstall oc
 # The operator removes the instance's resources. With persistence.orphan=true (default)
 # the PVC is RETAINED — delete it manually to remove data.
 ```
+
+**All-in-one (`operator.install=true`):** delete the instance **before** uninstalling, so the
+operator finalizes it while still running (the CR is applied as a hook and is not tracked by
+the release):
+
+```bash
+kubectl delete openclawinstance oc-openclaw-instance   # let the operator finalize first
+helm uninstall oc                                       # then remove the operator (CRDs are kept)
+```
+
+Skipping that order leaves the CR behind, and its finalizer blocks once the operator is gone
+(clear it with `kubectl patch openclawinstance <name> --type=merge -p '{"metadata":{"finalizers":[]}}'`).

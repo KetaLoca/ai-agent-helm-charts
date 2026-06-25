@@ -4,6 +4,18 @@ All notable changes to the `openclaw-instance` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of the operator/app versions).
 
+## [0.2.1] - 2026-06-25
+
+### Fixed
+- **All-in-one install now works.** When `operator.install=true`, the `OpenClawInstance`
+  is applied as a `post-install`/`post-upgrade` hook so it lands **after** the bundled
+  operator CRDs exist (Helm validates the main manifest before the CRD is created, which
+  made `0.2.0` fail with `no matches for kind "OpenClawInstance"`).
+- **CR rejected by the operator's CRD schema.** Removed `security.podSecurityContext.seccompProfile`
+  from the defaults: openclaw-operator `0.36.x` curates `podSecurityContext` and does not
+  accept that field (it applies seccomp itself). Validated against the live CRD with
+  `kubectl apply --dry-run=server`. This affected the default CR-emitter mode too.
+
 ## [0.2.0] - 2026-06-25
 
 ### Added

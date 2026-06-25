@@ -93,14 +93,14 @@ persistence:
   orphan: true
 
 security:
-  # -- Pod security context (spec.security.podSecurityContext).
+  # -- Pod security context (spec.security.podSecurityContext). NOTE: the operator's
+  # CRD curates this field and does NOT accept `seccompProfile` (the operator applies
+  # seccomp itself); only the keys below are valid for openclaw-operator 0.36.x.
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 1000
     runAsGroup: 1000
     fsGroup: 1000
-    seccompProfile:
-      type: RuntimeDefault
   # -- Container security context (spec.security.containerSecurityContext).
   # readOnlyRootFilesystem is left to the operator default until app-verified.
   containerSecurityContext:

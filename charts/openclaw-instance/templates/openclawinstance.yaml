@@ -8,9 +8,18 @@ metadata:
     {{- with .Values.instance.labels }}
     {{- toYaml . | nindent 4 }}
     {{- end }}
-  {{- with .Values.instance.annotations }}
+  {{- if or .Values.operator.install .Values.instance.annotations }}
   annotations:
+    {{- if .Values.operator.install }}
+    # All-in-one: the operator + its CRDs are installed in this same release, so the
+    # CRD does not exist yet when Helm validates the main manifest. Apply the CR as a
+    # post-install/upgrade hook so it lands AFTER the CRDs (and operator) are created.
+    "helm.sh/hook": post-install,post-upgrade
+    "helm.sh/hook-weight": "10"
+    {{- end }}
+    {{- with .Values.instance.annotations }}
     {{- toYaml . | nindent 4 }}
+    {{- end }}
   {{- end }}
 spec:
   {{- $modeled := include "openclaw-instance.modeledSpec" . | fromYaml }}

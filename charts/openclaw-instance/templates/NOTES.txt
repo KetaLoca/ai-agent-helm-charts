@@ -12,6 +12,8 @@ ALL-IN-ONE — this release also installed the OpenClaw operator and its CRDs (b
   kubectl -n {{ .Release.Namespace }} get deploy -l app.kubernetes.io/name=openclaw-operator
   kubectl get crd openclawinstances.openclaw.rocks
 Single-tenant / once-per-cluster: for more instances keep operator.install=false and reuse it.
+To uninstall: FIRST `kubectl -n {{ .Release.Namespace }} delete openclawinstance {{ include "openclaw-instance.instanceName" . }}`
+(let the operator finalize it), THEN `helm -n {{ .Release.Namespace }} uninstall {{ .Release.Name }}`.
 {{- else }}
 PREREQUISITE — the OpenClaw operator and its CRDs must already be installed. Verify:
   kubectl get crd openclawinstances.openclaw.rocks
