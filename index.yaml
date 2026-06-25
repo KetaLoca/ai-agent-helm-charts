@@ -114,6 +114,48 @@ entries:
       artifacthub.io/prerelease: "true"
     apiVersion: v2
     appVersion: 2026.2.3
+    created: "2026-06-25T15:15:40.345126192Z"
+    dependencies:
+    - condition: operator.install
+      name: openclaw-operator
+      repository: oci://ghcr.io/paperclipinc/charts
+      version: 0.36.5
+    description: Unofficial community Helm chart that declares an OpenClawInstance
+      custom resource (openclaw.rocks/v1alpha1) for the OpenClaw Kubernetes Operator.
+      Requires the operator and its CRDs to be installed already. Not affiliated with
+      OpenClaw / Paperclip Inc.
+    digest: 98cec93ea8f485a495fb83f0a6a1290d2d0de331f13440fcd261a13d4288bbf1
+    home: https://github.com/KetaLoca/ai-agent-helm-charts
+    keywords:
+    - ai
+    - agent
+    - openclaw
+    - operator
+    - crd
+    kubeVersion: '>=1.28.0-0'
+    maintainers:
+    - name: KetaLoca
+    name: openclaw-instance
+    sources:
+    - https://github.com/paperclipinc/openclaw-operator
+    - https://github.com/KetaLoca/ai-agent-helm-charts
+    type: application
+    urls:
+    - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/openclaw-instance-0.2.1/openclaw-instance-0.2.1.tgz
+    version: 0.2.1
+  - annotations:
+      artifacthub.io/license: MIT
+      artifacthub.io/links: |
+        - name: source
+          url: https://github.com/KetaLoca/ai-agent-helm-charts
+        - name: operator
+          url: https://github.com/paperclipinc/openclaw-operator
+      artifacthub.io/maintainers: |
+        - name: KetaLoca
+      artifacthub.io/operator: "false"
+      artifacthub.io/prerelease: "true"
+    apiVersion: v2
+    appVersion: 2026.2.3
     created: "2026-06-25T14:56:15.560742503Z"
     dependencies:
     - condition: operator.install
@@ -217,4 +259,4 @@ entries:
     urls:
     - https://github.com/KetaLoca/ai-agent-helm-charts/releases/download/openclaw-instance-0.1.0/openclaw-instance-0.1.0.tgz
     version: 0.1.0
-generated: "2026-06-25T14:56:15.560766076Z"
+generated: "2026-06-25T15:15:40.345151579Z"
