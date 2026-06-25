@@ -12,9 +12,16 @@ instance:
   annotations: {}
 
 operator:
-  # -- This chart REQUIRES the OpenClaw operator + CRDs to be installed already.
-  # Informational: surfaces a preflight reminder in NOTES. `helm install` fails
-  # naturally if the CRD is absent.
+  # -- All-in-one: also install the official OpenClaw operator (incl. its CRDs) as a
+  # bundled subchart, so a single `helm install` brings up operator + this instance.
+  # SINGLE-TENANT / once-per-cluster ONLY — the operator is a cluster-wide singleton
+  # that owns cluster-scoped CRDs; two bundled copies conflict. For multi-tenant,
+  # install the operator once (here or standalone) and keep this false on the other
+  # instances. Tune the operator via the `openclaw-operator:` key (see bottom of file).
+  install: false
+  # -- This chart REQUIRES the OpenClaw operator + CRDs to be present (unless
+  # operator.install=true). Informational: surfaces a preflight reminder in NOTES.
+  # `helm install` fails naturally if the CRD is absent.
   required: true
 
 # -- Optional image registry override (spec.registry).
@@ -230,3 +237,12 @@ extraSpec: {}
 # -- Name overrides.
 nameOverride: ""
 fullnameOverride: ""
+
+# Operator subchart settings — ONLY used when operator.install=true. These are the
+# official openclaw-operator chart's values, passed through under this key. Defaults
+# are sensible (cluster-wide watch, CRDs installed, webhook off, leader election on).
+# openclaw-operator:
+#   watchNamespaces: []      # restrict the operator (renders namespaced RBAC instead)
+#   crds:
+#     install: true          # set false if CRDs are managed out-of-band
+#   replicaCount: 1

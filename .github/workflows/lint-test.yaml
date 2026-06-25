@@ -55,6 +55,16 @@ jobs:
       - name: yamllint
         run: yamllint -c .yamllint.yaml charts examples .github
 
+      - name: Build chart dependencies
+        run: |
+          set -euo pipefail
+          for chart in charts/*/; do
+            if grep -q '^dependencies:' "${chart}Chart.yaml"; then
+              echo "== helm dependency update ${chart} =="
+              helm dependency update "${chart}"
+            fi
+          done
+
       - name: helm lint (strict)
         run: |
           set -euo pipefail

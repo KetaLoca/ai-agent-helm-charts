@@ -6,7 +6,7 @@ description: >-
   and its CRDs to be installed already. Not affiliated with OpenClaw / Paperclip Inc.
 type: application
 # Chart SemVer (independent of the OpenClaw app/operator versions).
-version: 0.1.1
+version: 0.2.0
 # Targeted OpenClaw application image version (referenced in the CR's spec.image).
 appVersion: "2026.2.3"
 # The OpenClaw operator requires Kubernetes >= 1.28.
@@ -23,6 +23,14 @@ keywords:
   - crd
 maintainers:
   - name: KetaLoca
+# Optional all-in-one: bundle the official OpenClaw operator (incl. its CRDs) as a
+# subchart, gated by `operator.install` (default false). When false the dependency is
+# NOT rendered and this chart stays a pure CR emitter. See values.yaml / README.
+dependencies:
+  - name: openclaw-operator
+    version: "0.36.5"
+    repository: "oci://ghcr.io/paperclipinc/charts"
+    condition: operator.install
 annotations:
   artifacthub.io/license: MIT
   # This chart produces a CR for the operator; it is NOT the operator itself.

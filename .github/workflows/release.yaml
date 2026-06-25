@@ -31,6 +31,18 @@ jobs:
         with:
           version: v3.16.4
 
+      # Resolve subchart dependencies (e.g. openclaw-instance's optional
+      # openclaw-operator) so chart-releaser packages them into the chart archive.
+      - name: Build chart dependencies
+        run: |
+          set -euo pipefail
+          for chart in charts/*/; do
+            if grep -q '^dependencies:' "${chart}Chart.yaml"; then
+              echo "== helm dependency update ${chart} =="
+              helm dependency update "${chart}"
+            fi
+          done
+
       # Classic channel: packages changed charts, creates GitHub Releases, and
       # updates index.yaml on the gh-pages branch (which must already exist).
       - name: Run chart-releaser

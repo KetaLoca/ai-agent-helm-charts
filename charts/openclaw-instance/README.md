@@ -18,8 +18,10 @@ escape hatch for fields it doesn't model yet.
 ## Prerequisites (important)
 
 - The **OpenClaw operator and its CRDs must already be installed** — this chart does
-  not install them. See [`examples/openclaw/operator-notes.md`](../../examples/openclaw/operator-notes.md).
+  not install them by default. See [`examples/openclaw/operator-notes.md`](../../examples/openclaw/operator-notes.md).
   `helm install` fails with `no matches for kind "OpenClawInstance"` if the CRD is absent.
+  **Or** set `operator.install=true` to bundle the operator (see
+  [All-in-one](#all-in-one-bundled-operator) — single-tenant / once-per-cluster).
 - Kubernetes **≥ 1.28** (operator requirement). Helm **≥ 3.8**.
 
 ## Install
@@ -28,17 +30,37 @@ escape hatch for fields it doesn't model yet.
 # Verify the operator/CRD first:
 kubectl get crd openclawinstances.openclaw.rocks
 
-helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.1.1 \
+helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.2.0 \
   -f my-values.yaml
 # or: helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
 
 kubectl get openclawinstance oc-openclaw-instance
 ```
 
+### All-in-one (bundled operator)
+
+No operator in the cluster yet? Bundle and install it in the same release
+(**single-tenant / once-per-cluster** — the operator is a cluster-wide singleton):
+
+```bash
+helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.2.0 \
+  --set operator.install=true
+```
+
+This pulls the official [`openclaw-operator`](https://github.com/openclaw-rocks/openclaw-operator)
+chart as a dependency and installs the operator (+ its CRDs) alongside this
+`OpenClawInstance`. The operator's admission webhook is off by default, so creating the
+CR in the same release is safe. Tune the operator under the `openclaw-operator:` key
+(e.g. `openclaw-operator.watchNamespaces`). For **multiple** instances, install the
+operator once (here or standalone) and keep `operator.install=false` on the rest.
+
 ## Key decisions
 
 - **Thin CR emitter.** We render the CR and let the operator do the rest. We do **not**
   re-create the StatefulSet/Service/PVC/RBAC the operator manages.
+- **Optional all-in-one (`operator.install`).** Off by default (pure CR emitter,
+  multi-tenant-safe). When on, the official operator chart is pulled as a subchart so one
+  `helm install` brings up operator + instance — single-tenant / once-per-cluster.
 - **`extraSpec` (deep-merge, wins on conflict).** Any CRD field the chart doesn't model
   (e.g. `gateway`, `backup`, `workspace`, `initContainers`, `sidecars`) can be set via
   `extraSpec`; it is deep-merged into `spec` after the modeled fields and **overrides**
@@ -101,7 +123,7 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | CRD API | Operator | App image | Min K8s |
 |---|---|---|---|---|
-| `0.1.1` | `openclaw.rocks/v1alpha1` | `paperclipinc/openclaw-operator` (verify version) | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` |
+| `0.2.0` | `openclaw.rocks/v1alpha1` | `openclaw-operator` `0.36.5` (bundled when `operator.install=true`) | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` |
 
 Unknown/newer CRD fields → route through `extraSpec` (no chart release needed). The
 targeted CRD is vendored under `crd-schema/` for reference.

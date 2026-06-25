@@ -14,9 +14,11 @@
     "operator": {
       "type": "object",
       "properties": {
+        "install": { "type": "boolean" },
         "required": { "type": "boolean" }
       }
     },
+    "openclaw-operator": { "type": "object" },
     "registry": { "type": "string" },
     "image": {
       "type": "object",

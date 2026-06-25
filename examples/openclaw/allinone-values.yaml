@@ -1,0 +1,23 @@
+# All-in-one: bundle and install the OpenClaw operator together with this instance,
+# so a single `helm install` brings up the operator (+ its CRDs) and this
+# OpenClawInstance.
+#
+# SINGLE-TENANT / once-per-cluster — the operator is a cluster-wide singleton. For more
+# instances, install the operator once and keep operator.install=false on the others.
+#
+#   helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance \
+#     --version 0.2.0 -f allinone-values.yaml
+operator:
+  install: true
+
+# Operator subchart overrides (optional). Defaults: cluster-wide watch, CRDs installed,
+# admission webhook off, leader election on.
+openclaw-operator:
+  crds:
+    install: true
+  # watchNamespaces:        # restrict the operator (renders namespaced RBAC instead)
+  #   - openclaw
+
+# Pin the app image in real use (prefer image.digest).
+image:
+  tag: "2026.2.3"

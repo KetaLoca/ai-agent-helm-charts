@@ -4,6 +4,21 @@ All notable changes to the `openclaw-instance` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of the operator/app versions).
 
+## [0.2.0] - 2026-06-25
+
+### Added
+- **All-in-one mode** (`operator.install`, default `false`): optionally bundle and install
+  the official OpenClaw operator (incl. its CRDs) as a subchart dependency, so a single
+  `helm install` brings up the operator and this instance. Tune it via the
+  `openclaw-operator:` values key. **Single-tenant / once-per-cluster** — the operator is a
+  cluster-wide singleton; for multi-tenant keep this off and install the operator once.
+- Example `examples/openclaw/allinone-values.yaml`.
+
+### Notes
+- Default behaviour is unchanged: with `operator.install=false` the chart remains a pure
+  CR emitter and the dependency is not rendered. The operator's admission webhook is off by
+  default, so co-installing the CR in one release is safe.
+
 ## [0.1.1] - 2026-06-02
 
 ### Changed

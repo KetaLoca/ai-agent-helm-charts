@@ -2,7 +2,9 @@
 .git/
 .gitignore
 .DS_Store
-*.tgz
+# Ignore only stray root-level archives — subchart archives under charts/ (e.g. the
+# bundled openclaw-operator dependency) MUST be packaged into the chart.
+/*.tgz
 *.bak
 *.orig
 # Dev-only / reference assets (not part of the released chart):

@@ -7,10 +7,17 @@ Declared OpenClawInstance:
   Namespace: {{ .Release.Namespace }}
   Image:     {{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}{{ if .Values.image.digest }} (digest pinned){{ end }}
 
+{{- if .Values.operator.install }}
+ALL-IN-ONE — this release also installed the OpenClaw operator and its CRDs (bundled subchart).
+  kubectl -n {{ .Release.Namespace }} get deploy -l app.kubernetes.io/name=openclaw-operator
+  kubectl get crd openclawinstances.openclaw.rocks
+Single-tenant / once-per-cluster: for more instances keep operator.install=false and reuse it.
+{{- else }}
 PREREQUISITE — the OpenClaw operator and its CRDs must already be installed. Verify:
   kubectl get crd openclawinstances.openclaw.rocks
-If missing, install the operator first (see examples/openclaw/operator-notes.md);
-otherwise `helm install` fails with "no matches for kind OpenClawInstance".
+If missing, install the operator first (see examples/openclaw/operator-notes.md) or set
+operator.install=true; otherwise `helm install` fails with "no matches for kind OpenClawInstance".
+{{- end }}
 
 Check your instance:
   kubectl -n {{ .Release.Namespace }} get openclawinstance {{ include "openclaw-instance.instanceName" . }}
