@@ -28,7 +28,7 @@ annotations:
 
 ## 2. Hard assumption: the operator is already installed
 
-The chart **requires** the OpenClaw Operator + its CRDs to be present. The chart does not install them. Consequences:
+By default the chart **requires** the OpenClaw Operator + its CRDs to be present and does **not** install them (opt-in `operator.install=true` bundles them — see §13). Consequences (default mode):
 
 - `helm template` always works (a CR is just YAML).
 - `helm install` **fails** if the CRD is absent (`no matches for kind "OpenClawInstance"`). This is acceptable and documented.
@@ -314,3 +314,58 @@ The operator applies its own **defaulting** (and may have a validating/mutating 
 ## 12. `helm test`
 
 Light `helm test`: assert the `OpenClawInstance` object exists and reached a `Ready`/`Reconciled` condition (`kubectl wait --for=condition=Ready openclawinstance/<name>`), gated so it only runs when the operator is present. Do not depend on pulling the OpenClaw image in CI (`06`).
+
+## 13. All-in-one / bundled operator (opt-in) — added 0.2.x
+
+Goal: honor the maintainer's intent that the chart be installable with a single `helm install`,
+**no manual cluster prep**, for single-tenant/homelab/demo use — without sacrificing the
+default multi-tenant CR-emitter posture.
+
+**Shape.** A new value `operator.install` (**default `false`**). When `true`, the chart pulls the
+**official operator chart** as a conditional dependency and installs the operator + its CRDs
+alongside this `OpenClawInstance`:
+
+```yaml
+# Chart.yaml
+dependencies:
+  - name: openclaw-operator
+    version: "0.36.5"                          # pinned; Renovate tracks it
+    repository: "oci://ghcr.io/paperclipinc/charts"
+    condition: operator.install                # not rendered when false
+```
+
+When `false`, the dependency is **not rendered** and behavior is exactly the pre-0.2 CR emitter.
+Operator settings are overridable under the `openclaw-operator:` values key (e.g.
+`openclaw-operator.watchNamespaces`, `.crds.install`). CI/release resolve the dependency with a
+`helm dependency update` step; the chart's `.helmignore` must **not** exclude `charts/*.tgz`
+(only `/*.tgz` at root) so the subchart is packaged.
+
+**Why a post-install hook for the CR (critical).** Helm validates the whole main manifest against
+the live API **before** applying it. With the operator's CRDs delivered as subchart *templates*
+(`templates/crds/`, not the special `crds/` dir), the `OpenClawInstance` kind does not exist yet at
+that point, so a plain co-install fails with `no matches for kind "OpenClawInstance"` (this shipped
+broken in `0.2.0`). Fix (`0.2.1`): when `operator.install=true`, render the CR with
+`helm.sh/hook: post-install,post-upgrade` (+ `hook-weight`) so it is applied **after** the main
+phase (operator + CRDs) — Helm v3.16/v4 refresh discovery between phases, so the CR maps cleanly.
+Verified end-to-end on `personal-k3s` (2026-06-25): fresh single `helm install --set operator.install=true`
+→ operator `1/1`, CR `Running`/`Ready`, operator reconciled StatefulSet + Service (18789/18793/9090) +
+bound 10Gi PVC + default-deny NetworkPolicy. The operator's **admission webhook is off by default**
+(`webhook.enabled: false`), so co-installing the CR is safe (no webhook-not-ready failure).
+
+**Single-tenant / once-per-cluster.** The operator is a cluster-wide singleton (ClusterRole +
+leader election) that owns cluster-scoped CRDs. `operator.install=true` is therefore for **one**
+install per cluster; for multiple instances, install the operator once and keep `operator.install=false`
+on the rest.
+
+**CRD-schema alignment (found via real-cluster validation).** The operator `0.36.x` CRD **curates**
+`spec.security.podSecurityContext` and rejects `seccompProfile` (the operator applies seccomp itself);
+the chart's default sent it, so even the default CR-emitter mode produced a CR the operator rejected.
+Removed in `0.2.1`. Lesson: validate the rendered CR against the **live** CRD
+(`kubectl apply --dry-run=server`), since `kubeconform` skips the CR. Allowed `podSecurityContext`
+keys (0.36.x): `fsGroup`, `fsGroupChangePolicy`, `runAsGroup`, `runAsNonRoot`, `runAsUser`.
+
+**Uninstall ordering (documented wart).** Because the CR is a hook (not tracked by the release) and
+`helm uninstall` removes the bundled operator, deleting the CR after the operator is gone strands its
+`openclaw.rocks/finalizer`. Procedure for all-in-one: `kubectl delete openclawinstance <name>` **first**
+(operator finalizes it), **then** `helm uninstall`. The CRDs carry `helm.sh/resource-policy: keep` and
+survive uninstall by design.

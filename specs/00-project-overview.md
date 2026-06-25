@@ -43,10 +43,10 @@ The first two targets:
 
 **Out of scope (initially) — explicitly deferred:**
 
-- Bundling or installing the **OpenClaw operator** or its CRDs (the `openclaw-instance` chart assumes they exist). Documented, not automated.
+- Bundling/installing the **OpenClaw operator** or its CRDs *by default* — the chart stays a CR emitter and assumes they exist. **Update (0.2.x):** an **opt-in** `operator.install=true` now bundles the official operator chart as a subchart for a single `helm install` (single-tenant / once-per-cluster); see `03 §13`. Documented, not automated, in default mode.
 - Re-implementing the OpenClaw operator's behavior (NetworkPolicy/PDB/RBAC/StatefulSet generation) — that is the operator's job.
 - A Hermes "cluster"/multi-replica/HA story with shared state (architecturally unsafe — see §6).
-- An umbrella/meta-chart, sub-charts, or a shared library chart (revisit once both charts stabilize; see `01`).
+- An umbrella/meta-chart or shared library chart as the *default* shape. **Update (0.2.x):** `openclaw-instance` gained an **optional** subchart dependency (the operator) gated behind `operator.install` (not rendered by default). A shared library chart across both charts is still deferred (see `01`).
 - cosign signing & SLSA provenance (planned as a later hardening phase, see `05`).
 - Bundling LLM backends (Ollama, vLLM) as dependencies — referenced via config only.
 
