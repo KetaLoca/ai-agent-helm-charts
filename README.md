@@ -15,7 +15,7 @@ opinionated, secure-by-default, and production-aware.
 | Chart | Deploys | Status |
 |---|---|---|
 | [`hermes-agent`](charts/hermes-agent) | The Hermes Agent (`nousresearch/hermes-agent`) as a Deployment + PVC + Service, hardened and private by default. | alpha — `v0.1.x` |
-| [`openclaw-instance`](charts/openclaw-instance) | An `OpenClawInstance` custom resource for the OpenClaw Kubernetes Operator (the operator must be pre-installed). | alpha — `v0.1.x` |
+| [`openclaw-instance`](charts/openclaw-instance) | An `OpenClawInstance` custom resource for the OpenClaw Kubernetes Operator. The operator must be pre-installed, or use the opt-in all-in-one mode (`operator.install=true`) to bundle it. | alpha — `v0.2.x` |
 
 ## Quick start (safe by default)
 
@@ -65,10 +65,10 @@ kubectl port-forward svc/my-hermes-hermes-agent 8642:8642
 | Chart | Chart version | Targets (image) | Min K8s | Helm |
 |---|---|---|---|---|
 | `hermes-agent` | `0.1.2` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` (4 supported) |
-| `openclaw-instance` | `0.1.1` | CRD `openclaw.rocks/v1alpha1` · app `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` | `>= 3.8` |
+| `openclaw-instance` | `0.2.1` | CRD `openclaw.rocks/v1alpha1` · app `ghcr.io/openclaw/openclaw` (`appVersion: 2026.2.3`) | `>= 1.28` | `>= 3.8` |
 
 \* Upstream Hermes currently ships only `:latest`; pin `image.digest` for production. See the chart README and `docs/upgrade.md`.
-The `openclaw-instance` chart requires the [OpenClaw operator](charts/openclaw-instance/README.md) and its CRDs to be installed first.
+The `openclaw-instance` chart requires the [OpenClaw operator](charts/openclaw-instance/README.md) and its CRDs to be installed first — or set `operator.install=true` for the opt-in all-in-one mode that bundles the operator (incl. its CRDs) as a subchart, so a single `helm install` brings up operator + instance (single-tenant / once per cluster).
 
 ## Documentation
 
