@@ -13,6 +13,10 @@ Reach it locally with port-forward (recommended — do NOT expose it publicly):
   kubectl --namespace {{ .Release.Namespace }} port-forward svc/{{ include "hermes-agent.fullname" . }} {{ .Values.service.port }}:{{ .Values.service.port }}
 
 Then call the OpenAI-compatible API at http://127.0.0.1:{{ .Values.service.port }}
+
+ℹ️  The agent has NO model provider yet — a fresh install runs but won't answer until
+   you configure one (e.g. a ChatGPT/Codex or other subscription via OAuth, no API key
+   needed). Configure it after install — see docs/model-providers.md.
 {{- end }}
 {{- if and .Values.service.enabled .Values.apiServer.requireKey }}
 {{- $hasKey := or (ne .Values.apiServer.key "") (ne .Values.secrets.existingSecret "") (and .Values.secrets.create (hasKey .Values.secrets.data "API_SERVER_KEY")) (gt (len .Values.extraEnvFrom) 0) }}

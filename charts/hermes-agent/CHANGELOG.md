@@ -4,6 +4,22 @@ All notable changes to the `hermes-agent` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of `appVersion`).
 
+## [0.1.4] - 2026-06-26
+
+### Added
+- **`docs/model-providers.md`** — how to give the agent a brain after install. A fresh
+  install runs the gateway but has **no model provider**, so it won't answer until you
+  configure one. Documents the in-pod flow (`hermes auth add <id>` → `hermes model`), the
+  headless OAuth login (`--no-browser --manual-paste`), which providers work with a
+  **subscription and no API key** (`openai-codex`, Nous Portal, Copilot, Grok) vs which
+  need a key, that Anthropic subscription OAuth is **not permitted** in third-party tools,
+  and that credentials persist on the PVC (`HOME` = the data dir). Verified end-to-end on
+  a live cluster against `appVersion v2026.6.19`.
+
+### Changed
+- **`NOTES.txt`** now points new installs to `docs/model-providers.md` so the
+  "running gateway but no brain" state is obvious. No template/runtime behaviour change.
+
 ## [0.1.3] - 2026-06-26
 
 ### Changed

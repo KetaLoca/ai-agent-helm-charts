@@ -27,6 +27,9 @@ Work through this before exposing `hermes-agent` to anything real.
 - [ ] `allowPrivilegeEscalation: false`, `capabilities: drop [ALL]` (defaults).
 - [ ] `automountServiceAccountToken: false`; no cluster RBAC granted.
 - [ ] `resources.requests/limits` set; `shm.enabled: true` if browser tools are used.
+  - Real footprint: an **idle** gateway sits around **~110–150 MiB** RAM (cloud-model
+    provider), so the default `requests.memory: 1Gi` is generous headroom. Browser/
+    Playwright tools push it up — raise the `2Gi` limit and enable `shm` before using them.
 
 ## Network
 - [ ] `networkPolicy.enabled: true` with a DNS + HTTPS **egress allow-list**.

@@ -27,16 +27,21 @@ Install from the **OCI registry** (no `helm repo add` needed):
 ```bash
 helm install my-hermes \
   oci://ghcr.io/ketaloca/charts/hermes-agent \
-  --version 0.1.3 \
+  --version 0.1.4 \
   --set apiServer.key="$(openssl rand -hex 24)"   # dev only — see secrets in the chart README
 ```
+
+> **After install, give the agent a brain.** A fresh install runs the gateway but has
+> **no model provider**, so it won't answer until you configure one — including
+> **subscription logins that need no paid API key**. See
+> [docs/model-providers.md](docs/model-providers.md).
 
 …or via the **classic repository**:
 
 ```bash
 helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
 helm repo update
-helm install my-hermes ketaloca/hermes-agent --version 0.1.3
+helm install my-hermes ketaloca/hermes-agent --version 0.1.4
 ```
 
 Reach it **locally** — the gateway is **not** exposed publicly by default:
@@ -64,7 +69,7 @@ kubectl port-forward svc/my-hermes-hermes-agent 8642:8642
 
 | Chart | Chart version | Targets (image) | Min K8s | Helm |
 |---|---|---|---|---|
-| `hermes-agent` | `0.1.3` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` (4 supported) |
+| `hermes-agent` | `0.1.4` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` (4 supported) |
 | `openclaw-instance` | `0.2.2` | CRD `openclaw.rocks/v1alpha1` · app `ghcr.io/openclaw/openclaw` (`appVersion: 2026.6.10`) | `>= 1.28` | `>= 3.8` |
 
 \* Pinned to an upstream CalVer release; also pin `image.digest` for maximum production immutability. See the chart README and `docs/upgrade.md`.
@@ -73,7 +78,7 @@ The `openclaw-instance` chart requires the [OpenClaw operator](charts/openclaw-i
 ## Documentation
 
 - [Security model](docs/security.md) · [Production checklist](docs/production-checklist.md)
-- [Backup & restore](docs/backup-restore.md) · [Upgrade](docs/upgrade.md) · [Troubleshooting](docs/troubleshooting.md)
+- [Model providers (give the agent a brain)](docs/model-providers.md) · [Backup & restore](docs/backup-restore.md) · [Upgrade](docs/upgrade.md) · [Troubleshooting](docs/troubleshooting.md)
 - [External secrets](docs/external-secrets.md) · [Network policies](docs/network-policies.md) · [GitOps](docs/gitops.md) · [Releasing](docs/releasing.md)
 - Design specs live in [`specs/`](specs/).
 

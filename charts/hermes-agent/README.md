@@ -26,12 +26,12 @@ chart forbids `replicaCount > 1` with persistence and uses the `Recreate` strate
 
 ```bash
 # OCI (no helm repo add needed)
-helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.3 \
+helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.4 \
   -f my-values.yaml
 
 # …or the classic repo
 helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
-helm install my-hermes ketaloca/hermes-agent --version 0.1.3 -f my-values.yaml
+helm install my-hermes ketaloca/hermes-agent --version 0.1.4 -f my-values.yaml
 ```
 
 Reach it locally — the gateway is **not** exposed publicly by default:
@@ -40,6 +40,10 @@ Reach it locally — the gateway is **not** exposed publicly by default:
 kubectl port-forward svc/my-hermes-hermes-agent 8642:8642
 # OpenAI-compatible API at http://127.0.0.1:8642 (send your API key)
 ```
+
+> **Give the agent a brain.** A fresh install runs but has **no model provider**, so it
+> won't answer until you configure one (subscription OAuth logins need **no API key**).
+> See [docs/model-providers.md](../../docs/model-providers.md).
 
 See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
 `private-gateway`, `ingress-with-auth`, `external-secrets`, `tailscale`.
@@ -128,7 +132,7 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | App (image) | Min K8s | Helm |
 |---|---|---|---|
-| `0.1.3` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` |
+| `0.1.4` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` |
 
 \* Pinned to an upstream CalVer release; also pin `image.digest` for stricter immutability. See [docs/upgrade.md](../../docs/upgrade.md).
 

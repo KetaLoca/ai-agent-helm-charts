@@ -13,7 +13,7 @@ reconciled by the OpenClaw operator.
 
 | Chart | Chart version | App (image) | Operator | Min K8s | Helm |
 |---|---|---|---|---|---|
-| `hermes-agent` | `0.1.3` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | — | `>= 1.25` | `>= 3.8` (4 supported) |
+| `hermes-agent` | `0.1.4` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | — | `>= 1.25` | `>= 3.8` (4 supported) |
 | `openclaw-instance` | `0.2.2` | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.6.10`) | `openclaw-operator 0.36.5` (bundled when `operator.install=true`) | `>= 1.28` | `>= 3.8` |
 
 \* Pinned to an upstream CalVer release. Pin `image.digest` too for maximum immutability
