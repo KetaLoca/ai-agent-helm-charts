@@ -4,6 +4,22 @@ All notable changes to the `hermes-agent` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of `appVersion`).
 
+## [0.1.3] - 2026-06-26
+
+### Changed
+- **Pin the app image to a real upstream version.** `appVersion` is now `v2026.6.19`
+  (Hermes Agent v0.17.0) instead of the floating `latest`. Upstream now publishes
+  immutable CalVer release tags, so the chart pins one for reproducible deploys. No
+  template/values changes; for stricter immutability still pin `image.digest` in
+  production (see [`docs/upgrade.md`](../../docs/upgrade.md)).
+
+### Notes
+- v0.17.0 is a feature/security release (new iMessage/Raft/WhatsApp-Cloud channels,
+  desktop app, dashboard auth hardening, CVE bumps for `urllib3`/`PyJWT`). It does
+  **not** change the container contract this chart models — same gateway port `8642`,
+  `/health` endpoint, writable `/run` scratch, and no new required env vars — so this
+  is a drop-in pin.
+
 ## [0.1.2] - 2026-06-02
 
 ### Fixed

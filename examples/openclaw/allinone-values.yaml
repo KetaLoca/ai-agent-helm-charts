@@ -6,7 +6,7 @@
 # instances, install the operator once and keep operator.install=false on the others.
 #
 #   helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance \
-#     --version 0.2.1 -f allinone-values.yaml
+#     --version 0.2.2 -f allinone-values.yaml
 operator:
   install: true
 
@@ -20,4 +20,4 @@ openclaw-operator:
 
 # Pin the app image in real use (prefer image.digest).
 image:
-  tag: "2026.2.3"
+  tag: "2026.6.10"

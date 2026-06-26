@@ -6,9 +6,9 @@ description: >-
   and its CRDs to be installed already. Not affiliated with OpenClaw / Paperclip Inc.
 type: application
 # Chart SemVer (independent of the OpenClaw app/operator versions).
-version: 0.2.1
+version: 0.2.2
 # Targeted OpenClaw application image version (referenced in the CR's spec.image).
-appVersion: "2026.2.3"
+appVersion: "2026.6.10"
 # The OpenClaw operator requires Kubernetes >= 1.28.
 kubeVersion: ">=1.28.0-0"
 home: https://github.com/KetaLoca/ai-agent-helm-charts

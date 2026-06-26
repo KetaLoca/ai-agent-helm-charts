@@ -4,7 +4,7 @@
 
 | Chart | App (image) | Min K8s | Helm |
 |---|---|---|---|
-| `0.1.2` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` (4 supported) |
+| `0.1.3` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` (4 supported) |
 
 \* See "Image pinning" below.
 
@@ -23,15 +23,16 @@ helm upgrade my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent \
 
 ## Image pinning (important)
 
-Upstream currently publishes **only `:latest`** — no confirmed semver tag — so the
-chart's `appVersion` is `latest`. For production, **pin a digest** so you control when
+Upstream now publishes **versioned CalVer release tags** (e.g. `v2026.6.19`), so the
+chart pins `appVersion` to a specific release instead of tracking `latest`. For
+production, **also pin a digest** so the image is fully immutable and you control when
 the agent changes:
 
 ```bash
 # Find the current digest of the tag you've vetted:
-docker buildx imagetools inspect nousresearch/hermes-agent:latest --format '{{json .Manifest}}' | jq -r .digest
+docker buildx imagetools inspect nousresearch/hermes-agent:v2026.6.19 --format '{{json .Manifest}}' | jq -r .digest
 # or:
-crane digest nousresearch/hermes-agent:latest
+crane digest nousresearch/hermes-agent:v2026.6.19
 ```
 
 ```yaml

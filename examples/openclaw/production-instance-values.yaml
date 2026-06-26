@@ -5,7 +5,7 @@
 image:
   # Pin a digest for production (resolve the current one). Tag shown as a fallback.
   # digest: "sha256:REPLACE_WITH_A_REAL_DIGEST"
-  tag: "2026.2.3"
+  tag: "2026.6.10"
 
 secrets:
   existingSecret: openclaw-keys   # External Secrets / Sealed Secrets / SOPS — see docs

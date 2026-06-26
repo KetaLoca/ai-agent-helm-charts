@@ -26,12 +26,12 @@ chart forbids `replicaCount > 1` with persistence and uses the `Recreate` strate
 
 ```bash
 # OCI (no helm repo add needed)
-helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.2 \
+helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.3 \
   -f my-values.yaml
 
 # …or the classic repo
 helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
-helm install my-hermes ketaloca/hermes-agent --version 0.1.2 -f my-values.yaml
+helm install my-hermes ketaloca/hermes-agent --version 0.1.3 -f my-values.yaml
 ```
 
 Reach it locally — the gateway is **not** exposed publicly by default:
@@ -128,9 +128,9 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | App (image) | Min K8s | Helm |
 |---|---|---|---|
-| `0.1.2` | `nousresearch/hermes-agent` (`appVersion: latest`*) | `>= 1.25` | `>= 3.8` |
+| `0.1.3` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` |
 
-\* No stable upstream tag confirmed; pin `image.digest`. See [docs/upgrade.md](../../docs/upgrade.md).
+\* Pinned to an upstream CalVer release; also pin `image.digest` for stricter immutability. See [docs/upgrade.md](../../docs/upgrade.md).
 
 ## Uninstall
 

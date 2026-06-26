@@ -5,10 +5,11 @@ description: >-
   Hardened and private by default. Not affiliated with Nous Research.
 type: application
 # Chart SemVer (independent of the upstream app version).
-version: 0.1.2
-# Upstream app/image version this chart targets. Upstream currently ships only
-# ":latest"; pin image.digest for production. See docs/upgrade.md (Q10).
-appVersion: "latest"
+version: 0.1.3
+# Upstream app/image version this chart targets. Pinned to a CalVer release tag
+# (upstream now ships versioned tags); also pin image.digest for production immutability.
+# See docs/upgrade.md.
+appVersion: "v2026.6.19"
 kubeVersion: ">=1.25.0-0"
 home: https://github.com/KetaLoca/ai-agent-helm-charts
 sources:

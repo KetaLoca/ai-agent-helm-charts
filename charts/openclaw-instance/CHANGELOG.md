@@ -4,6 +4,22 @@ All notable changes to the `openclaw-instance` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of the operator/app versions).
 
+## [0.2.2] - 2026-06-26
+
+### Changed
+- **Bump the targeted OpenClaw app image** from `2026.2.3` to `2026.6.10`. The chart is
+  a thin CR emitter, so this only changes `spec.image`; the CR schema is governed by the
+  operator (`0.36.5`, unchanged) and remains valid. Low-risk drop-in — no CRD, values,
+  or template changes.
+
+### Notes
+- The range (≈25 releases) is feature/fix work plus a security round (rejects unsafe
+  OAuth/token lifetimes and oversized response bodies, DOMPurify XSS patch in the UI,
+  `configure` fails closed without a TTY). No new required env vars, ports, probes, or
+  `securityContext` fields; `seccompProfile` stays operator-curated (still omitted here).
+- Heads-up if you back the PVC with **NFS**: newer OpenClaw avoids SQLite WAL on network
+  filesystems; the default RWO block volume is unaffected.
+
 ## [0.2.1] - 2026-06-25
 
 ### Fixed
