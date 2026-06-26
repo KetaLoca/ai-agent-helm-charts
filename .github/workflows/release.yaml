@@ -1,10 +1,16 @@
 name: release
 
-# Manual only — releases never fire automatically. Run from the Actions tab
-# ("release" -> "Run workflow") once a chart version is bumped and you are ready to
-# publish. See docs/releasing.md for one-time setup (gh-pages, public packages,
-# Artifact Hub).
+# Publishes on push to main whenever a chart's Chart.yaml `version` is bumped:
+# chart-releaser only packages versions that don't have a Release yet, so a push that
+# doesn't bump any chart version publishes nothing (the downstream steps are all
+# guarded on the produced packages). Still runnable manually from the Actions tab
+# ("release" -> "Run workflow"). See docs/releasing.md for one-time setup (gh-pages,
+# public packages, Artifact Hub).
 on:
+  push:
+    branches: [main]
+    paths:
+      - 'charts/**'
   workflow_dispatch: {}
 
 permissions:
@@ -88,7 +94,17 @@ jobs:
             cosign sign --yes "ghcr.io/ketaloca/charts/${name}:${ver}"
           done
 
+      # Guard the attestation: attest-build-provenance fails when no subject matches,
+      # which would break every push that doesn't publish a new chart version.
+      - name: Detect packaged charts
+        id: pkgs
+        run: |
+          shopt -s nullglob
+          pkgs=(.cr-release-packages/*.tgz)
+          echo "count=${#pkgs[@]}" >> "$GITHUB_OUTPUT"
+
       - name: Attest build provenance for the chart packages
+        if: steps.pkgs.outputs.count != '0'
         uses: actions/attest-build-provenance@v2
         with:
           subject-path: ".cr-release-packages/*.tgz"

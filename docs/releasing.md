@@ -5,8 +5,10 @@ Charts are published to **two channels** plus **Artifact Hub** for discovery:
 - **OCI** (primary): `oci://ghcr.io/ketaloca/charts/<chart>`
 - **Classic repo** (GitHub Pages): `helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts`
 
-Releases are **manual** — the `release` workflow only runs from the Actions tab
-(`workflow_dispatch`). Nothing publishes automatically.
+Releases fire **on push to `main`** whenever a chart's `version` is bumped: the
+`release` workflow runs `chart-releaser`, which only publishes versions that don't
+already have a Release (so a push that doesn't bump any chart version publishes
+nothing). It can also be run manually from the Actions tab (`workflow_dispatch`).
 
 ## One-time setup
 
@@ -40,8 +42,9 @@ Releases are **manual** — the `release` workflow only runs from the Actions ta
 1. Bump the chart's `version` in `charts/<chart>/Chart.yaml` (SemVer) and update its
    `CHANGELOG.md`. (Bump `appVersion` / pin a new `image.digest` if the upstream image
    changed; add an `docs/upgrade.md` note if action is required.)
-2. Merge to `main`.
-3. Actions → **release** → **Run workflow**.
+2. Push to `main` (directly or via a merged PR). The `release` workflow runs
+   automatically and publishes the bumped chart(s) — no manual trigger needed.
+   (Actions → **release** → **Run workflow** still works if you need to re-run.)
 
 `chart-releaser` releases every chart whose `version` has no matching release yet
 (classic repo `index.yaml` + a GitHub Release with the `.tgz`). The same packages are

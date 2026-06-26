@@ -10,7 +10,7 @@ Three workflows under `.github/workflows/`:
 |---|---|---|
 | `lint-test.yaml` | PR + push to `main` | Quality gate: lint, schema, render, policy, unit, Kind install. Blocks merge. |
 | `security-scan.yaml` | PR + push + weekly `schedule` | Trivy config/misconfig + secret scan; optional Checkov; SARIF upload. |
-| `release.yaml` | push of tag `*-vX.Y.Z` (and/or manual `workflow_dispatch`) | Package + push charts to GHCR OCI; create GitHub Release with notes; (future) cosign sign. |
+| `release.yaml` | push to `main` under `charts/**` (or manual `workflow_dispatch`) | Package changed charts (`chart-releaser`) → GHCR OCI + classic gh-pages; GitHub Release; cosign sign + SLSA attest. |
 
 All workflows pin actions by **major tag or SHA**, set least-privilege `permissions:`, and use concurrency cancellation on PRs. Renovate keeps actions/images current.
 
@@ -67,7 +67,7 @@ A dedicated job (can be `continue-on-error: false` for renderable installs, but 
 
 ## 6. `release.yaml` (publish to GHCR OCI)
 
-Trigger: pushing an annotated tag `^(hermes-agent|openclaw-instance)-v[0-9]+\.[0-9]+\.[0-9]+$` (or `workflow_dispatch` with a chart input). Per-chart tags allow independent releases.
+Trigger: push to `main` touching `charts/**` (or manual `workflow_dispatch`). `chart-releaser` publishes every chart whose `Chart.yaml` `version` has no matching Release yet, so independent per-chart releases fall out of independent version bumps (no per-chart tags needed).
 
 Permissions: `contents: write` (release), `packages: write` (GHCR), `id-token: write` (future cosign keyless).
 
