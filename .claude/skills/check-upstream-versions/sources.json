@@ -1,0 +1,40 @@
+{
+  "_comment": "Declarative manifest for the check-upstream-versions skill. Each entry is one upstream artifact we pin. To track a new chart/image, add a component here -- the engine (scripts/check_versions.py) needs no changes. See reference.md for the field spec and the version-scheme gotchas.",
+  "components": [
+    {
+      "id": "hermes-app",
+      "title": "Hermes Agent (app image)",
+      "chart": "hermes-agent",
+      "kind": "image",
+      "current": { "file": "charts/hermes-agent/Chart.yaml", "field": "appVersion" },
+      "latest": { "method": "github-release", "repo": "NousResearch/hermes-agent" },
+      "image": { "registry": "dockerhub", "repo": "nousresearch/hermes-agent", "strip_v": false },
+      "changelog": "https://github.com/NousResearch/hermes-agent/releases",
+      "version_scheme": "calver vYYYY.M.D (GitHub also tags the same release as SemVer v0.x)",
+      "notes": "Chart defaults appVersion to \"latest\" (floating); image.tag falls back to appVersion. Pin a vYYYY.M.D tag (or digest) for production."
+    },
+    {
+      "id": "openclaw-app",
+      "title": "OpenClaw (app image)",
+      "chart": "openclaw-instance",
+      "kind": "image",
+      "current": { "file": "charts/openclaw-instance/Chart.yaml", "field": "appVersion" },
+      "latest": { "method": "github-release", "repo": "openclaw/openclaw" },
+      "image": { "registry": "ghcr", "repo": "openclaw/openclaw", "strip_v": true },
+      "changelog": "https://github.com/openclaw/openclaw/releases",
+      "version_scheme": "calver YYYY.M.D (image tags have NO leading v; GitHub release tags DO)",
+      "notes": "Consumed by the operator via spec.image. Usually a low-risk bump for the chart (same CRD/operator)."
+    },
+    {
+      "id": "openclaw-operator",
+      "title": "OpenClaw operator (Helm subchart)",
+      "chart": "openclaw-instance",
+      "kind": "helm-dependency",
+      "current": { "file": "charts/openclaw-instance/Chart.yaml", "dependency": "openclaw-operator" },
+      "latest": { "method": "ghcr-tags", "repo": "paperclipinc/charts/openclaw-operator" },
+      "changelog": "https://github.com/paperclipinc/openclaw-operator/releases",
+      "version_scheme": "semver (chart version, independent of the operator appVersion)",
+      "notes": "Authoritative 'latest' = newest chart tag in the OCI registry (what `helm dependency update` pulls). Watch for a possible move to ghcr.io/openclaw-rocks/charts and update repo here if upstream migrates. After a bump run `helm dependency update charts/openclaw-instance` to refresh Chart.lock, and re-vendor crd-schema/ if the CRD changed."
+    }
+  ]
+}
