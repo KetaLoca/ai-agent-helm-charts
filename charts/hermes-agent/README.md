@@ -26,12 +26,12 @@ chart forbids `replicaCount > 1` with persistence and uses the `Recreate` strate
 
 ```bash
 # OCI (no helm repo add needed)
-helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.4 \
+helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.5 \
   -f my-values.yaml
 
 # …or the classic repo
 helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
-helm install my-hermes ketaloca/hermes-agent --version 0.1.4 -f my-values.yaml
+helm install my-hermes ketaloca/hermes-agent --version 0.1.5 -f my-values.yaml
 ```
 
 Reach it locally — the gateway is **not** exposed publicly by default:
@@ -58,9 +58,11 @@ See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
   / `extraEnvFrom` in production; `apiServer.key` is dev-only.
 - **Single-writer / `Recreate`** — see above. `persistence.enabled + replicaCount>1`
   is rejected at render time.
-- **No silent `:latest`** — the image is `digest > tag > appVersion`; an all-empty
-  reference fails. `appVersion` is pinned to an upstream CalVer release (`v2026.6.19`);
-  for stricter immutability **also pin `image.digest`** in production.
+- **Pinned by digest by default** — the image is `digest > tag > appVersion`; an
+  all-empty reference fails. `appVersion` is an upstream CalVer release (`v2026.6.19`)
+  and `values.yaml` ships the **matching `image.digest`**, so installs are immutable out
+  of the box. The digest is refreshed together with `appVersion` on every bump; set
+  `image.digest: ""` to track the tag instead.
 - **Hardened by default** — `runAsNonRoot` (UID 10000), `allowPrivilegeEscalation: false`,
   `capabilities: drop [ALL]`, `seccompProfile: RuntimeDefault`, no auto-mounted SA token.
   `readOnlyRootFilesystem` is **off** by default (opt-in); the chart always mounts a tmpfs `/run` so the image's s6-overlay (PID 1) boots as the non-root user.
@@ -74,7 +76,7 @@ See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
 | `replicaCount` | `1` | Must stay `1` with persistence (single-writer). |
 | `image.repository` | `nousresearch/hermes-agent` | Image repo. |
 | `image.tag` | `""` | Falls back to `appVersion`. Avoid `latest` in prod. |
-| `image.digest` | `""` | Pin by digest (wins over tag). **Recommended for prod.** |
+| `image.digest` | `sha256:…` (matches `appVersion`) | **Pinned by default** for immutability (wins over tag). Set `""` to track the tag. |
 | `image.pullPolicy` | `IfNotPresent` | |
 | `command` / `args` | `[]` / `[gateway, run]` | Entry/args (image runs `gateway run` via s6). |
 | `apiServer.requireKey` | `true` | Warn if the Service is on but no key source exists. |
@@ -132,9 +134,9 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | App (image) | Min K8s | Helm |
 |---|---|---|---|
-| `0.1.4` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` |
+| `0.1.5` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` |
 
-\* Pinned to an upstream CalVer release; also pin `image.digest` for stricter immutability. See [docs/upgrade.md](../../docs/upgrade.md).
+\* Pinned to an upstream CalVer release, with the matching `image.digest` pinned by default. See [docs/upgrade.md](../../docs/upgrade.md).
 
 ## Uninstall
 

@@ -4,6 +4,18 @@ All notable changes to the `hermes-agent` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of `appVersion`).
 
+## [0.1.5] - 2026-06-26
+
+### Changed
+- **Pin the image by digest *by default*.** `values.yaml` now ships
+  `image.digest` set to the multi-arch index digest of the pinned `appVersion`
+  (`v2026.6.19` → `sha256:9f367c77…`), so every install is immutable out of the box —
+  consumers no longer have to resolve and pin a digest themselves. The digest takes
+  precedence over the tag (see the `hermes-agent.image` helper); set `image.digest: ""`
+  to track the tag instead. **The digest MUST be refreshed together with `appVersion`**
+  on every bump — the `revisar-actualizaciones` skill now tracks the pinned digest and
+  flags drift, and Renovate keeps it current.
+
 ## [0.1.4] - 2026-06-26
 
 ### Added

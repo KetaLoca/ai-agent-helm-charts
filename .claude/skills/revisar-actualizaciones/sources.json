@@ -7,11 +7,12 @@
       "chart": "hermes-agent",
       "kind": "image",
       "current": { "file": "charts/hermes-agent/Chart.yaml", "field": "appVersion" },
+      "digest_pin": { "file": "charts/hermes-agent/values.yaml", "key": "image.digest" },
       "latest": { "method": "github-release", "repo": "NousResearch/hermes-agent" },
       "image": { "registry": "dockerhub", "repo": "nousresearch/hermes-agent", "strip_v": false },
       "changelog": "https://github.com/NousResearch/hermes-agent/releases",
       "version_scheme": "calver vYYYY.M.D (GitHub also tags the same release as SemVer v0.x)",
-      "notes": "Chart defaults appVersion to \"latest\" (floating); image.tag falls back to appVersion. Pin a vYYYY.M.D tag (or digest) for production."
+      "notes": "Chart pins appVersion to a vYYYY.M.D release AND values.yaml pins the matching image.digest by default. With --digests the engine verifies the pinned digest matches appVersion and flags drift. On a bump, update BOTH appVersion (Chart.yaml) and image.digest (values.yaml) together."
     },
     {
       "id": "openclaw-app",

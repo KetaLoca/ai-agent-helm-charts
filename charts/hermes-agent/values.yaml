@@ -13,8 +13,12 @@ image:
   repository: nousresearch/hermes-agent
   # -- Image tag. Empty falls back to .Chart.AppVersion. Avoid "latest" in production.
   tag: ""
-  # -- Pin by digest for immutability (takes precedence over tag). Recommended for production.
-  digest: ""
+  # -- Pin by digest for immutability (takes precedence over tag). Defaults to the
+  # multi-arch index digest of the pinned appVersion, so every install is immutable
+  # out of the box. MUST be refreshed together with appVersion (the
+  # revisar-actualizaciones skill / Renovate keep them in sync). Set to "" to track
+  # the tag instead.
+  digest: "sha256:9f367c7756ef087661a361536a89f438d57a122b958dc23d82d456b1433e6e9e"
   # -- Image pull policy.
   pullPolicy: IfNotPresent
 # -- Image pull secrets, e.g. [{name: my-regcred}].

@@ -36,8 +36,8 @@ extension point. Don't hard-code component knowledge here; read it from the mani
 Run this and base everything on its output. Never eyeball versions by hand.
 
 ```bash
-python3 ${CLAUDE_SKILL_DIR}/scripts/check_versions.py            # human table
-python3 ${CLAUDE_SKILL_DIR}/scripts/check_versions.py --json     # structured, for you to parse
+python3 ${CLAUDE_SKILL_DIR}/scripts/check_versions.py --digests          # human table (also verifies pinned digests)
+python3 ${CLAUDE_SKILL_DIR}/scripts/check_versions.py --digests --json   # structured, for you to parse
 ```
 
 The script reads what each chart pins (from `Chart.yaml`), resolves the latest
@@ -48,6 +48,10 @@ with pagination and prerelease filtering), and prints `current → latest` with 
 - **OUT** — pinned but a newer stable release exists.
 - **PIN** — unpinned (a floating tag like `latest`). Treat as actionable: recommend pinning.
 - **???** — could not resolve upstream (network/repo moved). Investigate before concluding.
+- **Digest drift** (with `--digests`, for components that pin a digest like hermes-agent's
+  `values.yaml image.digest`) — the pinned digest no longer matches its `appVersion`.
+  Actionable: refresh the digest. Surfaced in the "Next" section and the JSON
+  `digest_drift` field; it also makes the script exit non-zero.
 
 What the script does **not** do — this is your job:
 
@@ -81,8 +85,10 @@ without an explicit go-ahead. When approved, do it per component. Full checklist
 [`reference.md`](reference.md); the essentials:
 
 **hermes-agent (image bump / pin)**
-- Set `appVersion` in `charts/hermes-agent/Chart.yaml` to the new tag (and/or pin
-  `image.digest` from the `--digests` run for production immutability).
+- Set `appVersion` in `charts/hermes-agent/Chart.yaml` to the new tag **and refresh
+  `image.digest` in `values.yaml`** to the matching digest — the chart pins it by default,
+  so bump both together (get the digest from the `--digests` run, `crane digest`, or
+  `docker buildx imagetools inspect`). A mismatch is reported as digest drift.
 - Apply any chart-affecting changes found in Phase 1 (new env values, probes, etc.).
 - Bump the chart `version` (SemVer: patch/minor/major by impact) and add a
   [Keep a Changelog](https://keepachangelog.com/en/1.1.0/) entry in the chart's `CHANGELOG.md`.

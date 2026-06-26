@@ -13,11 +13,11 @@ reconciled by the OpenClaw operator.
 
 | Chart | Chart version | App (image) | Operator | Min K8s | Helm |
 |---|---|---|---|---|---|
-| `hermes-agent` | `0.1.4` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | — | `>= 1.25` | `>= 3.8` (4 supported) |
+| `hermes-agent` | `0.1.5` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | — | `>= 1.25` | `>= 3.8` (4 supported) |
 | `openclaw-instance` | `0.2.2` | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.6.10`) | `openclaw-operator 0.36.5` (bundled when `operator.install=true`) | `>= 1.28` | `>= 3.8` |
 
-\* Pinned to an upstream CalVer release. Pin `image.digest` too for maximum immutability
-(see "Image pinning").
+\* Pinned to an upstream CalVer release, with the matching `image.digest` pinned by
+default (see "Image pinning").
 
 ---
 
@@ -44,28 +44,25 @@ helm upgrade my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent \
 - **Gotcha:** changing `persistence.size` on upgrade does **not** resize an existing PVC
   (depends on your StorageClass; usually a manual expansion).
 
-### Image pinning (important)
+### Image pinning (pinned by default)
 
-Upstream now publishes **versioned CalVer release tags** (e.g. `v2026.6.19`), so the
-chart pins `appVersion` to a specific release instead of tracking `latest`. For
-production, **also pin a digest** so the image is fully immutable and you control when
-the agent changes:
+Upstream publishes **versioned CalVer release tags** (e.g. `v2026.6.19`), so the chart
+pins `appVersion` to a specific release, and `values.yaml` **also ships the matching
+`image.digest`** — installs are fully immutable out of the box, no action needed.
+
+The digest **must be refreshed together with `appVersion`** on every bump (a stale
+digest would silently pin the *old* image). To resolve the digest for a new tag:
 
 ```bash
-# Find the current digest of the tag you've vetted:
-docker buildx imagetools inspect nousresearch/hermes-agent:v2026.6.19 --format '{{json .Manifest}}' | jq -r .digest
+docker buildx imagetools inspect nousresearch/hermes-agent:<new-tag> --format '{{json .Manifest}}' | jq -r .digest
 # or:
-crane digest nousresearch/hermes-agent:v2026.6.19
+crane digest nousresearch/hermes-agent:<new-tag>
 ```
 
-```yaml
-image:
-  digest: "sha256:<the-digest-you-vetted>"
-  tag: ""
-```
-
-Renovate is configured to open (non-auto-merged) PRs when the upstream image changes,
-so digest bumps are reviewed. Re-test in staging before promoting.
+The `revisar-actualizaciones` skill tracks the pinned digest and **flags drift** (digest
+not matching `appVersion`), and Renovate opens (non-auto-merged) PRs when the upstream
+image changes. To track the tag instead of a digest, set `image.digest: ""`. Re-test in
+staging before promoting.
 
 ---
 

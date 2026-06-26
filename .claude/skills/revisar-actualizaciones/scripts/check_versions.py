@@ -10,8 +10,9 @@ job (see SKILL.md). Pure Python stdlib, no third-party deps.
 Usage:
     check_versions.py [--json] [--digests] [--manifest PATH] [--repo-root PATH]
 
-Exit code: 0 if everything is pinned and up to date, 1 if any component is outdated
-or unpinned (handy for CI). 2 on a hard error.
+Exit code: 0 if everything is pinned and up to date, 1 if any component is outdated,
+unpinned, or has a pinned digest that drifted from its appVersion (handy for CI). 2 on
+a hard error.
 """
 from __future__ import annotations
 
@@ -89,6 +90,28 @@ def read_top_scalar(text: str, field: str) -> str | None:
     return None
 
 
+def read_nested_scalar(text: str, parent: str, child: str) -> str | None:
+    """Read a `child:` scalar under a top-level `parent:` mapping (2 levels, indent-based).
+
+    Used to read e.g. `image.digest` from values.yaml.
+    """
+    in_parent = False
+    pat_parent = re.compile(rf"^{re.escape(parent)}:\s*$")
+    pat_child = re.compile(rf"^\s+{re.escape(child)}:\s*(.+?)\s*$")
+    for line in text.splitlines():
+        if pat_parent.match(line):
+            in_parent = True
+            continue
+        if in_parent:
+            if re.match(r"^\S", line):  # back to column 0 -> left the parent block
+                break
+            m = pat_child.match(line)
+            if m:
+                val = re.sub(r"\s+#.*$", "", m.group(1)).strip().strip("\"'")
+                return val or None
+    return None
+
+
 def read_dependency_version(text: str, dep_name: str) -> str | None:
     """Read dependencies[].version for the entry whose name == dep_name."""
     lines = text.splitlines()
@@ -125,6 +148,25 @@ def read_current(repo_root: str, comp: dict) -> str | None:
     if "dependency" in cur:
         return read_dependency_version(text, cur["dependency"])
     return read_top_scalar(text, cur["field"])
+
+
+def read_digest_pin(repo_root: str, comp: dict) -> str | None:
+    """Read the digest the chart pins (e.g. values.yaml image.digest), if declared."""
+    dp = comp.get("digest_pin")
+    if not dp:
+        return None
+    path = os.path.join(repo_root, dp["file"])
+    try:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read()
+    except OSError as exc:
+        warn(f"{comp['id']}: cannot read {path}: {exc}")
+        return None
+    key = dp["key"]
+    if "." in key:
+        parent, child = key.split(".", 1)
+        return read_nested_scalar(text, parent, child)
+    return read_top_scalar(text, key)
 
 
 def read_chart_version(repo_root: str, comp: dict) -> str | None:
@@ -316,6 +358,7 @@ def evaluate(comp: dict, repo_root: str, want_digests: bool) -> dict:
         "status": status,
         "pinned": pinned,
         "outdated": status in {"outdated", "unpinned"},
+        "digest_drift": False,
         "version_scheme": comp.get("version_scheme"),
         "changelog": comp.get("changelog"),
         "notes": comp.get("notes"),
@@ -330,6 +373,20 @@ def evaluate(comp: dict, repo_root: str, want_digests: bool) -> dict:
         row["image"] = {"registry": img["registry"], "repo": img["repo"], "latest_tag": tag}
         if want_digests and tag and status in {"outdated", "unpinned"}:
             row["image"]["digest"] = resolve_digest(img, tag)
+        # Verify a pinned digest (e.g. values.yaml image.digest) matches the digest of
+        # the CURRENT appVersion. Catches a digest left stale after an appVersion bump.
+        if want_digests and comp.get("digest_pin"):
+            pinned_digest = read_digest_pin(repo_root, comp)
+            cur_tag = current
+            if cur_tag and img.get("strip_v"):
+                cur_tag = normalize(cur_tag)
+            expected = resolve_digest(img, cur_tag) if (pinned and cur_tag) else None
+            ok = bool(pinned_digest) and bool(expected) and pinned_digest == expected
+            row["image"]["pinned_digest"] = pinned_digest
+            row["image"]["expected_digest"] = expected
+            row["image"]["digest_ok"] = ok
+            if expected is not None and not ok:
+                row["digest_drift"] = True
     return row
 
 
@@ -350,14 +407,20 @@ def print_table(rows: list[dict]) -> None:
         )
     print()
     print("  Legend: OK up-to-date · OUT outdated · PIN unpinned (floating tag) · ??? could not resolve")
-    out = [r for r in rows if r["outdated"]]
-    if out:
+    flagged = [r for r in rows if r["outdated"] or r.get("digest_drift")]
+    if flagged:
         print("\n  Next: read the changelog for each flagged component before bumping:")
-        for r in out:
-            digest = r.get("image", {}).get("digest")
-            print(f"    - {r['title']}: {r['current']} -> {r['latest']}  {r['changelog']}")
-            if digest:
-                print(f"        digest: {digest}")
+        for r in flagged:
+            img = r.get("image", {})
+            if r["outdated"]:
+                print(f"    - {r['title']}: {r['current']} -> {r['latest']}  {r['changelog']}")
+                digest = img.get("digest")
+                if digest:
+                    print(f"        new digest (pin with the bump): {digest}")
+            if r.get("digest_drift"):
+                print(f"    - {r['title']}: pinned digest does NOT match {r['current']} (drift)")
+                print(f"        values.yaml: {img.get('pinned_digest')}")
+                print(f"        expected:    {img.get('expected_digest')}")
     else:
         print("\n  All tracked components are pinned and current.")
 
@@ -387,12 +450,13 @@ def main() -> int:
             "unpinned": sum(r["status"] == "unpinned" for r in rows),
             "up_to_date": sum(r["status"] == "up-to-date" for r in rows),
             "unknown": sum(r["status"] == "unknown" for r in rows),
+            "digest_drift": sum(bool(r.get("digest_drift")) for r in rows),
         }
         print(json.dumps({"repo_root": repo_root, "summary": summary, "components": rows}, indent=2))
     else:
         print_table(rows)
 
-    return 1 if any(r["outdated"] for r in rows) else 0
+    return 1 if any(r["outdated"] or r.get("digest_drift") for r in rows) else 0
 
 
 if __name__ == "__main__":

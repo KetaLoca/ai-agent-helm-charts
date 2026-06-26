@@ -54,7 +54,11 @@ Always re-validate against the live CRD when the operator moves:
 ## Full update checklist (Phase 2)
 
 1. Confirm the user approved the specific bump(s).
-2. Apply the version change(s) in `Chart.yaml` (+ `values.yaml` digest if pinning).
+2. Apply the version change(s) in `Chart.yaml` (`appVersion`). **If the chart pins a
+   digest (`digest_pin`, e.g. hermes-agent `values.yaml image.digest`), refresh it to the
+   new tag in the SAME bump** — resolve with `crane digest <repo>:<tag>` or
+   `docker buildx imagetools inspect <repo>:<tag> --format '{{json .Manifest}}' | jq -r .digest`.
+   A stale digest silently pins the OLD image; `--digests` reports it as drift.
 3. Apply chart-affecting changes from the changelog (env, probes, CRD, security ctx…).
 4. For an operator bump: `helm dependency update charts/openclaw-instance`; re-vendor
    `crd-schema/` if the CRD changed.
@@ -81,6 +85,10 @@ Always re-validate against the live CRD when the operator moves:
         "file":  "charts/<chart>/Chart.yaml",
         "field": "appVersion"                    // a top-level YAML scalar …
         // …OR: "dependency": "openclaw-operator" // a dependencies[].version entry
+      },
+      "digest_pin": {                            // optional; verify a pinned image digest
+        "file": "charts/<chart>/values.yaml",    // (with --digests) matches appVersion
+        "key":  "image.digest"                   // "parent.child" or a top-level scalar
       },
       "latest": {                                // upstream source of truth
         "method": "github-release" | "ghcr-tags",
@@ -110,9 +118,11 @@ and wire it in `resolve_latest()`.
 - **Auth:** GitHub via `gh api` when present (5000 req/h), else anonymous API (60/h).
   GHCR/Docker Hub use anonymous pull tokens (fine for public repos).
 - **Flags:** `--json` (structured), `--digests` (resolve image digests for flagged
-  components — Docker Hub `tags/<t>` field, GHCR `Docker-Content-Digest` header),
-  `--manifest PATH`, `--repo-root PATH`.
-- **Exit codes:** `0` all pinned & current · `1` something outdated/unpinned (CI-friendly)
-  · `2` manifest/load error.
-- **Local read:** targeted parser for top-level scalars and `dependencies[].version`
-  (no YAML lib needed); robust to comments/quotes/reordering for these simple fields.
+  components — Docker Hub `tags/<t>` field, GHCR `Docker-Content-Digest` header — AND, for
+  components with `digest_pin`, verify the pinned digest matches the CURRENT appVersion,
+  reporting `digest_drift`), `--manifest PATH`, `--repo-root PATH`.
+- **Exit codes:** `0` all pinned & current · `1` something outdated/unpinned/digest-drift
+  (CI-friendly) · `2` manifest/load error.
+- **Local read:** targeted parser for top-level scalars, `dependencies[].version`, and
+  nested `parent.child` scalars (`read_nested_scalar`, used for `values.yaml image.digest`)
+  — no YAML lib needed; robust to comments/quotes/reordering for these simple fields.

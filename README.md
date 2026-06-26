@@ -27,7 +27,7 @@ Install from the **OCI registry** (no `helm repo add` needed):
 ```bash
 helm install my-hermes \
   oci://ghcr.io/ketaloca/charts/hermes-agent \
-  --version 0.1.4 \
+  --version 0.1.5 \
   --set apiServer.key="$(openssl rand -hex 24)"   # dev only — see secrets in the chart README
 ```
 
@@ -41,7 +41,7 @@ helm install my-hermes \
 ```bash
 helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
 helm repo update
-helm install my-hermes ketaloca/hermes-agent --version 0.1.4
+helm install my-hermes ketaloca/hermes-agent --version 0.1.5
 ```
 
 Reach it **locally** — the gateway is **not** exposed publicly by default:
@@ -60,7 +60,7 @@ kubectl port-forward svc/my-hermes-hermes-agent 8642:8642
 - **No public exposure** — `ingress.enabled: false`, `ClusterIP` Service, dashboard off. Reach it with `port-forward` or an identity-aware proxy / VPN.
 - **Secrets external** — production uses `existingSecret` / External Secrets; in-chart secret creation is dev-only and flagged.
 - **Single-writer state** — `replicaCount: 1` with persistence (enforced); scale out with **more releases**, not more replicas. Rollouts use `Recreate`.
-- **Pinned images** — no silent `:latest`; tag/digest pinning supported (digest recommended).
+- **Pinned images** — no silent `:latest`; `hermes-agent` ships the matching `image.digest` **pinned by default** (immutable out of the box).
 - **Hardened pod** — `runAsNonRoot`, `allowPrivilegeEscalation: false`, `capabilities: drop [ALL]`, `seccompProfile: RuntimeDefault`, no auto-mounted ServiceAccount token.
 
 → [docs/security.md](docs/security.md) · [docs/production-checklist.md](docs/production-checklist.md)
@@ -69,10 +69,10 @@ kubectl port-forward svc/my-hermes-hermes-agent 8642:8642
 
 | Chart | Chart version | Targets (image) | Min K8s | Helm |
 |---|---|---|---|---|
-| `hermes-agent` | `0.1.4` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` (4 supported) |
+| `hermes-agent` | `0.1.5` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` (4 supported) |
 | `openclaw-instance` | `0.2.2` | CRD `openclaw.rocks/v1alpha1` · app `ghcr.io/openclaw/openclaw` (`appVersion: 2026.6.10`) | `>= 1.28` | `>= 3.8` |
 
-\* Pinned to an upstream CalVer release; also pin `image.digest` for maximum production immutability. See the chart README and `docs/upgrade.md`.
+\* Pinned to an upstream CalVer release; `hermes-agent` also pins the matching `image.digest` by default. See the chart README and `docs/upgrade.md`.
 The `openclaw-instance` chart requires the [OpenClaw operator](charts/openclaw-instance/README.md) and its CRDs to be installed first — or set `operator.install=true` for the opt-in all-in-one mode that bundles the operator (incl. its CRDs) as a subchart, so a single `helm install` brings up operator + instance (single-tenant / once per cluster).
 
 ## Documentation
