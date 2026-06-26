@@ -1,7 +1,7 @@
 #!/usr/bin/env python3
 """Compare the upstream versions we pin in the charts against the latest releases.
 
-Deterministic plumbing for the `check-upstream-versions` skill: it reads what each
+Deterministic plumbing for the `revisar-actualizaciones` skill: it reads what each
 chart currently pins (from Chart.yaml), resolves the latest *stable* upstream version
 from the real source of truth (GitHub Releases / the OCI registry), and reports the
 delta. It does NOT read changelogs or judge breaking changes -- that is the model's
@@ -24,7 +24,7 @@ import sys
 import urllib.error
 import urllib.request
 
-UA = "check-upstream-versions/1.0 (+claude-code skill)"
+UA = "revisar-actualizaciones/1.0 (+claude-code skill)"
 TIMEOUT = 30
 
 # Tags that are clearly not a stable release line.

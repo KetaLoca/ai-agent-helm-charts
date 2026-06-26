@@ -1,5 +1,5 @@
 {
-  "_comment": "Declarative manifest for the check-upstream-versions skill. Each entry is one upstream artifact we pin. To track a new chart/image, add a component here -- the engine (scripts/check_versions.py) needs no changes. See reference.md for the field spec and the version-scheme gotchas.",
+  "_comment": "Declarative manifest for the revisar-actualizaciones skill. Each entry is one upstream artifact we pin. To track a new chart/image, add a component here -- the engine (scripts/check_versions.py) needs no changes. See reference.md for the field spec and the version-scheme gotchas.",
   "components": [
     {
       "id": "hermes-app",

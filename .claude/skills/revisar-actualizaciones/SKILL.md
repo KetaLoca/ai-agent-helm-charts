@@ -1,13 +1,14 @@
 ---
-name: check-upstream-versions
+name: revisar-actualizaciones
 description: >-
-  Check whether this repo's charts pin the latest stable upstream versions (Hermes
-  Agent image, OpenClaw app image, OpenClaw operator subchart) and, on request, drive
-  the update. Use when asked things like: are we on the latest version, check upstream
-  / new releases, is hermes or openclaw up to date, check for chart updates, are the
-  charts outdated, bump appVersion / image / digest, or update the charts to the latest.
-  Runs a deterministic checker (OCI registries + GitHub Releases), then reads the
-  changelogs to flag breaking changes that affect the charts.
+  Comprueba si los charts del repo fijan la última versión estable upstream (imagen de
+  Hermes Agent, imagen de la app de OpenClaw y el subchart del operador de OpenClaw) y,
+  si lo pides, guía la actualización. Úsala cuando preguntes cosas como: ¿estamos en la
+  última versión?, revisa si hay actualizaciones, ¿hay versiones nuevas?, ¿está hermes u
+  openclaw al día?, comprueba las versiones de los charts, ¿están desfasados los charts?,
+  sube el appVersion / imagen / digest, o actualiza los charts a la última. Ejecuta un
+  comprobador determinista (registros OCI + GitHub Releases) y luego lee los changelogs
+  para detectar cambios que rompan los charts.
 allowed-tools:
   - Read
   - Grep
@@ -19,7 +20,7 @@ allowed-tools:
   - Bash(helm:*)
 ---
 
-# Check upstream versions
+# Revisar actualizaciones
 
 Keep the charts current with their upstream projects. Two phases: **Review** runs by
 default; **Update** runs only after the user explicitly approves a bump.

@@ -1,4 +1,4 @@
-# Reference — check-upstream-versions
+# Reference — revisar-actualizaciones
 
 Deep detail for the skill. `SKILL.md` stays lean; load this when you actually need the
 file mapping, the version-scheme rules, or the manifest spec.
