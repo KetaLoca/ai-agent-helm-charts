@@ -131,4 +131,4 @@
 - **Q7 — Hermes probes.** OK to ship probes off until the health path is verified, then default readiness on?
 - **Q8 — cosign timing.** Sign from v0.1.0, or defer to Phase 5 as planned?
 - **Q9 — Scope confirm.** Two charts only for v0.x (no operator chart, no umbrella) — confirmed?
-- **Q10 — Hermes `appVersion` pin.** Which specific upstream tag is the verified-good baseline (image moves fast; `latest` only currently confirmed)?
+- **Q10 — Hermes `appVersion` pin. RESOLVED (2026-06-26):** upstream now publishes versioned CalVer tags; pinned `appVersion: v2026.6.19` (chart `0.1.3`). Still pin `image.digest` for prod immutability. (Was open while upstream only shipped `:latest`.)

@@ -55,8 +55,8 @@ See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
 - **Single-writer / `Recreate`** — see above. `persistence.enabled + replicaCount>1`
   is rejected at render time.
 - **No silent `:latest`** — the image is `digest > tag > appVersion`; an all-empty
-  reference fails. Upstream currently ships only `:latest`, so **pin `image.digest`**
-  for production.
+  reference fails. `appVersion` is pinned to an upstream CalVer release (`v2026.6.19`);
+  for stricter immutability **also pin `image.digest`** in production.
 - **Hardened by default** — `runAsNonRoot` (UID 10000), `allowPrivilegeEscalation: false`,
   `capabilities: drop [ALL]`, `seccompProfile: RuntimeDefault`, no auto-mounted SA token.
   `readOnlyRootFilesystem` is **off** by default (opt-in); the chart always mounts a tmpfs `/run` so the image's s6-overlay (PID 1) boots as the non-root user.

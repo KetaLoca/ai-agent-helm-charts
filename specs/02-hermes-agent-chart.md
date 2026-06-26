@@ -44,7 +44,7 @@ annotations:
 ## 3. Container & command
 
 - Image ref (helper `hermes-agent.image`): if `image.digest` set → `repository@digest` (preferred for prod immutability); else `repository:tag`; else `repository:.Chart.AppVersion`. **If `digest`, `tag`, AND `AppVersion` are all empty → `{{ fail }}` with a clear message.** Never silently resolve to `:latest`.
-  > **Reality check (verified 2026-06-02):** upstream currently publishes `nousresearch/hermes-agent:latest` and no confirmed semver tag was found. Until a stable tag exists, production guidance is to **pin `image.digest`** (resolve the current `latest` digest); `Chart.yaml appVersion` documents the digest's human version. See `08` Q10.
+  > **Reality check (updated 2026-06-26):** upstream now publishes versioned **CalVer release tags** (e.g. `v2026.6.19`), so the chart pins `Chart.yaml appVersion` to a specific release (currently `v2026.6.19`) instead of tracking `latest`. For maximum prod immutability, **also pin `image.digest`**. (Up to 2026-06-02 only `:latest` was published — no longer the case.) See `08` Q10.
 - **Command/args:** default `command: []`, `args: ["gateway","run"]`.
   > **TODO(verify@impl):** if the upstream image `CMD` already defaults to `gateway run`, set `args: []` and document. Keep the explicit default until verified, to avoid a no-op container.
 - Container port: `containerPort: {{ .Values.service.targetPort }}` (8642), name `gateway`.
@@ -381,7 +381,7 @@ extraObjects: []        # raw extra manifests (advanced escape hatch)
 - **Single-writer state.** Never scale up; never share `/opt/data` across pods. Rollouts use `Recreate` (brief downtime).
 - **Secret exposure.** `secrets.create` / `apiServer.key` put secrets in the release; prod must use external secrets.
 - **Public exposure.** Ingress/dashboard are dangerous; default off; auth required.
-- **`latest` drift.** Upstream currently ships only `:latest` (no confirmed semver tag). The template refuses an all-empty image ref; **pin by `image.digest`** for prod. Never recommend `:latest`.
+- **`latest` drift.** Upstream now ships versioned CalVer tags (e.g. `v2026.6.19`); the chart pins `appVersion`. The template still refuses an all-empty image ref; **pin by `image.digest`** for prod. Never recommend `:latest`.
 - **`readOnlyRootFilesystem`** likely incompatible with s6 unless scratch emptyDirs mounted — keep off until verified.
 - **Resource starvation.** Browser tools need ≥2Gi + `/dev/shm`; document.
 - **Backups.** PVC holds irreplaceable memory/skills; `retain: true` + Velero/restic guidance (`backup-restore.md`).

@@ -101,7 +101,7 @@ These underpin the chart specs. Re-verify at implementation time; upstreams move
 - CRD group/version **`openclaw.rocks/v1alpha1`**; kinds **`OpenClawInstance`** (primary), `OpenClawSelfConfig`, `OpenClawClusterDefaults`.
 - Operator install (Helm OCI): `oci://ghcr.io/paperclipinc/charts/openclaw-operator` (org also appears as `openclaw-rocks`; **TODO(verify@impl)** canonical path + version). Requires K8s ≥ 1.28; cert-manager only if webhook enabled; Prometheus Operator only for ServiceMonitor.
 - Per `OpenClawInstance`, the **operator** creates: ServiceAccount+Role+RoleBinding, ConfigMap, PVC (10Gi default), PDB, **default-deny NetworkPolicy**, StatefulSet, Service (ports **18789/18793**), auto-generated gateway-token Secret, optional Ingress, optional ServiceMonitor.
-- App image: `ghcr.io/openclaw/openclaw` (e.g. `2026.2.3`).
+- App image: `ghcr.io/openclaw/openclaw` (e.g. `2026.6.10`).
 - Verified `spec` top-level fields and a full sample are captured in `03`.
 
 ## 8. Related specs
