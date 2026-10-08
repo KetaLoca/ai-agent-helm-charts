@@ -30,7 +30,7 @@ tests:
           value: "ghcr.io/openclaw/openclaw"
       - equal:
           path: spec.image.tag
-          value: "2026.6.10"
+          value: "2026.8.35"
       - equal:
           path: spec.storage.persistence.enabled
           value: true

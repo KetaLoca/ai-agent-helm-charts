@@ -29,6 +29,11 @@ Secure defaults in effect:
   - NetworkPolicy: {{ .Values.security.networkPolicy.enabled }} (keeps the operator's default-deny)
   - Ingress: {{ .Values.networking.ingress.enabled }} | chromium: {{ .Values.chromium.enabled }} | webTerminal: {{ .Values.webTerminal.enabled }}
   - autoUpdate: {{ .Values.autoUpdate.enabled }} | selfConfigure: {{ .Values.selfConfigure.enabled }}
+{{- if and .Values.chromium.enabled (not .Values.operator.install) }}
+
+‼️  chromium ENABLED — requires openclaw-operator >= 0.40.0. Older operators inject browser
+   config keys that OpenClaw >= 2026.8.1 rejects, and the gateway crash-loops (docs/upgrade.md).
+{{- end }}
 {{- if .Values.networking.ingress.enabled }}
 
 ‼️  Ingress ENABLED — ensure auth + TLS. With the default-deny NetworkPolicy on, you MUST add

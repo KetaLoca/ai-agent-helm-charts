@@ -95,7 +95,7 @@ persistence:
 security:
   # -- Pod security context (spec.security.podSecurityContext). NOTE: the operator's
   # CRD curates this field and does NOT accept `seccompProfile` (the operator applies
-  # seccomp itself); only the keys below are valid for openclaw-operator 0.36.x.
+  # seccomp itself); only the keys below are valid (re-checked for openclaw-operator 0.40.x).
   podSecurityContext:
     runAsNonRoot: true
     runAsUser: 1000
@@ -162,11 +162,16 @@ networking:
         enabled: false
         requestsPerSecond: 50
 
-# -- Probes (spec.probes). LEFT UNSET by default: the operator knows the app's health
-# endpoints and ships sane defaults. Override only when needed, e.g.:
-#   probes:
-#     readiness: {enabled: true, initialDelaySeconds: 5, periodSeconds: 5}
-probes: {}
+# -- Probes (spec.probes). The operator knows the app's health endpoints (/healthz,
+# /readyz) and ships sane defaults; only the startup budget is widened here. Since
+# OpenClaw 2026.8.x the gateway applies doctor config migrations and one-way state
+# migrations at startup (and 2026.9.x runs `doctor --fix` + waits up to 5 min for the
+# previous pod's startup lease) — the operator's default (60 × 5s = 300s) can kill it
+# mid-migration on a big upgrade. 120 × 5s = 10 min.
+# Override other probes only when needed, e.g. readiness: {initialDelaySeconds: 5}.
+probes:
+  startup:
+    failureThreshold: 120
 
 observability:
   metrics:

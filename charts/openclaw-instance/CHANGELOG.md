@@ -4,6 +4,50 @@ All notable changes to the `openclaw-instance` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of the operator/app versions).
 
+## [0.3.0] - 2026-10-08
+
+### Changed
+- **Bump the targeted OpenClaw app image** from `2026.6.10` to `2026.8.35` (latest
+  `extended-stable` of the 2026.8 line). **Not 2026.9.x yet:** 2026.9.x `fchmod`s its
+  state directory — the PVC root, owned by `root` on block storage — so `doctor --fix`
+  fails with `EPERM` and the pod crash-loops with operator `0.40.0`. The fix
+  (openclaw-operator #608, an `init-data-owner` init container) is merged upstream but
+  unreleased; the chart moves to 2026.9.x with the operator release that ships it.
+- **Bump the bundled operator** (`operator.install=true`) from `openclaw-operator`
+  `0.36.5` to `0.40.0`, and re-vendor `crd-schema/` from the operator `v0.40.0` CRD (the
+  vendored copy predated 0.36.5). The CRD change is additive only: new optional fields
+  (`probes.diskReadiness`, `workspace.fileUpdatePolicy`/`managedFiles`, `netbird`,
+  `gateway.image`/`resources`, `runtimeDeps.uvImage`, metrics collector, …), nothing
+  removed or newly required; `podSecurityContext`/`containerSecurityContext` keys are
+  unchanged (still no `seccompProfile`).
+- **Startup probe budget widened** to 10 min (`probes.startup.failureThreshold: 120`,
+  was the operator default of 300s): the gateway applies doctor config migrations and
+  one-way state migrations at startup.
+
+### Fixed
+- **Chromium + new app crash-loop.** Operator `0.36.x` injects browser config keys
+  (`browser.remoteCdpTimeoutMs`, `browser.profiles.*.color`) that OpenClaw `>= 2026.8.1`
+  rejects; operator `0.40.0` stops emitting them. In instance-only mode, upgrade your
+  operator to `>= 0.40.0` together with this chart.
+
+### Security
+- The app range carries many hardening fixes: browser relay/CDP credential and host
+  pinning, device tokens sent only to loopback, credential egress closed at run end,
+  exec deny failing closed, a patched DOMPurify (GHSA-cmwh-pvxp-8882) and dependency CVE
+  updates (Sharp/libheif, Undici, Nodemailer); the 2026.8.33–8.35 backports add secret
+  egress, scoped node tokens and Prometheus scrape authorization fixes. 2026.6.11 also
+  fixes a gateway stall in Kubernetes pods with many injected env vars.
+
+### Upgrade notes
+- **Back up the PVC first** — one-way state migrations; no rollback to 2026.6.x.
+- **Control UI browsers now need a one-time device pairing** (operator `0.40.0` stops
+  injecting the retired `gateway.controlUi.dangerouslyDisableDeviceAuth`).
+- Retired keys in `config.raw` crash-loop the pod (the operator re-applies them after
+  doctor strips them), and several defaults became more permissive. See
+  [docs/upgrade.md](../../docs/upgrade.md#02x--030-app-2026610--2026835-operator-0365--0400).
+- Validated on a real cluster (k3s, `local-path` PVC): all-in-one install with operator
+  `0.40.0` + app `2026.8.35` → instance `Running`/`Ready`, `/healthz` and `/readyz` 200.
+
 ## [0.2.2] - 2026-06-26
 
 ### Changed

@@ -14,7 +14,7 @@ reconciled by the OpenClaw operator.
 | Chart | Chart version | App (image) | Operator | Min K8s | Helm |
 |---|---|---|---|---|---|
 | `hermes-agent` | `0.1.5` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | — | `>= 1.25` | `>= 3.8` (4 supported) |
-| `openclaw-instance` | `0.2.2` | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.6.10`) | `openclaw-operator 0.36.5` (bundled when `operator.install=true`) | `>= 1.28` | `>= 3.8` |
+| `openclaw-instance` | `0.3.0` | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.8.35`) | `openclaw-operator 0.40.0` (bundled when `operator.install=true`) | `>= 1.28` | `>= 3.8` |
 
 \* Pinned to an upstream CalVer release, with the matching `image.digest` pinned by
 default (see "Image pinning").
@@ -108,6 +108,40 @@ helm upgrade my-openclaw oci://ghcr.io/ketaloca/charts/openclaw-instance \
   version over mixing versions yourself.
 - **Downgrades:** because CRDs are templates, a `helm rollback` may try to revert the CR
   schema. Test first.
+
+### 0.2.x → 0.3.0 (app 2026.6.10 → 2026.8.35, operator 0.36.5 → 0.40.0)
+
+> **Why 2026.8.35 and not 2026.9.x?** OpenClaw 2026.9.x `fchmod`s its state directory,
+> which is the PVC root — owned by `root` on block storage (`fsGroup` only changes the
+> group) — so `doctor --fix` fails with `EPERM` and the pod crash-loops. The fix is the
+> operator's `init-data-owner` init container (openclaw-operator #608), merged after
+> `0.40.0` and not released yet. The chart moves to 2026.9.x together with the operator
+> release that ships it. `2026.8.35` is the latest `extended-stable` of the 2026.8 line
+> (security backports) and was validated with operator `0.40.0` on a real cluster.
+
+1. **Back up the PVC first.** OpenClaw 2026.7–2026.8 run one-way state migrations on
+   first boot (shared SQLite state, doctor config migrations). Rolling the app back to 2026.6.x
+   afterwards is not supported — readiness fences incompatible state.
+2. **Instance-only mode: upgrade the operator to `>= 0.40.0` first (or together).**
+   Operator `0.36.x` injects `browser.remoteCdpTimeoutMs` / `browser.profiles.*.color`
+   when `chromium.enabled=true`; OpenClaw `>= 2026.8.1` rejects those keys and the gateway
+   crash-loops. With chromium off it is not strictly required, but keep app and operator
+   together anyway. All-in-one mode gets operator `0.40.0` automatically.
+3. **Expect a slower first boot on a big upgrade.** The gateway applies doctor config
+   migrations and state migrations at startup. The chart widens the startup probe to
+   10 min (`probes.startup.failureThreshold: 120`).
+4. **Control UI browsers must be paired once.** Operator `0.40.0` stops injecting
+   `gateway.controlUi.dangerouslyDisableDeviceAuth`; the app already ignored it. Approve
+   the browser with the normal one-time device pairing flow.
+5. **Review `config.raw` / `fromFiles`.** The operator re-applies them on every start, so a
+   key the app has retired is put back after doctor removes it and the pod crash-loops.
+   Check `openclaw doctor` output for retired keys. Known in this range: `codex/*` and
+   `openai-codex/*` model refs → `openai/*` (2026.8.1), the OpenProse plugin removed
+   (2026.8.1).
+6. **Some defaults became more permissive** — pin them in `config.raw` if you relied on
+   the old behaviour: session tools see more sessions (`tools.sessions.visibility`; set
+   `tree` or `self`), self-learning auto-applies skills, and Skill Workshop no longer asks
+   for approval (`skills.workshop.approvalPolicy: "pending"` to restore).
 
 ### Which model should I use?
 

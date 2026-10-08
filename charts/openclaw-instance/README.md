@@ -30,7 +30,7 @@ escape hatch for fields it doesn't model yet.
 # Verify the operator/CRD first:
 kubectl get crd openclawinstances.openclaw.rocks
 
-helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.2.2 \
+helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.3.0 \
   -f my-values.yaml
 # or: helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
 
@@ -43,7 +43,7 @@ No operator in the cluster yet? Bundle and install it in the same release
 (**single-tenant / once-per-cluster** — the operator is a cluster-wide singleton):
 
 ```bash
-helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.2.2 \
+helm install oc oci://ghcr.io/ketaloca/charts/openclaw-instance --version 0.3.0 \
   --set operator.install=true
 ```
 
@@ -98,7 +98,7 @@ operator once (here or standalone) and keep `operator.install=false` on the rest
 | `webTerminal.enabled` | `false` | Interactive shell into the pod. |
 | `networking.service.type` | `ClusterIP` | |
 | `networking.ingress.enabled` | `false` | Off — prefer Tailscale / a proxy. |
-| `probes` | `{}` | Left to the operator unless overridden. |
+| `probes` | `{startup: {failureThreshold: 120}}` | Operator defaults, with a 10 min startup budget (doctor + migrations on first boot). |
 | `observability.metrics.enabled` | `true` | `serviceMonitor.enabled` is `false`. |
 | `availability.podDisruptionBudget.enabled` | `false` | |
 | `autoUpdate.enabled` | `false` | Auto image updates (supply-chain risk). |
@@ -123,7 +123,7 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | CRD API | Operator | App image | Min K8s |
 |---|---|---|---|---|
-| `0.2.2` | `openclaw.rocks/v1alpha1` | `openclaw-operator` `0.36.5` (bundled when `operator.install=true`) | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.6.10`) | `>= 1.28` |
+| `0.3.0` | `openclaw.rocks/v1alpha1` | `openclaw-operator` `0.40.0` (bundled when `operator.install=true`) | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.8.35`) | `>= 1.28` |
 
 Unknown/newer CRD fields → route through `extraSpec` (no chart release needed). The
 targeted CRD is vendored under `crd-schema/` for reference.

@@ -70,7 +70,7 @@ kubectl port-forward svc/my-hermes-hermes-agent 8642:8642
 | Chart | Chart version | Targets (image) | Min K8s | Helm |
 |---|---|---|---|---|
 | `hermes-agent` | `0.1.5` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` (4 supported) |
-| `openclaw-instance` | `0.2.2` | CRD `openclaw.rocks/v1alpha1` · app `ghcr.io/openclaw/openclaw` (`appVersion: 2026.6.10`) | `>= 1.28` | `>= 3.8` |
+| `openclaw-instance` | `0.3.0` | CRD `openclaw.rocks/v1alpha1` · app `ghcr.io/openclaw/openclaw` (`appVersion: 2026.8.35`) | `>= 1.28` | `>= 3.8` |
 
 \* Pinned to an upstream CalVer release; `hermes-agent` also pins the matching `image.digest` by default. See the chart README and `docs/upgrade.md`.
 The `openclaw-instance` chart requires the [OpenClaw operator](charts/openclaw-instance/README.md) and its CRDs to be installed first — or set `operator.install=true` for the opt-in all-in-one mode that bundles the operator (incl. its CRDs) as a subchart, so a single `helm install` brings up operator + instance (single-tenant / once per cluster).

@@ -7,7 +7,7 @@ by this chart and **not** packaged into the released chart (`.helmignore` exclud
 
 - Source: `config/crd/bases/openclaw.rocks_openclawinstances.yaml` from the OpenClaw
   operator (`github.com/paperclipinc/openclaw-operator`, mirror: `openclaw-rocks`).
-- Fetched: 2026-06-02. API: `openclaw.rocks/v1alpha1`.
+- Fetched: 2026-10-08 (operator v0.40.0). API: `openclaw.rocks/v1alpha1`.
 
 ## Regenerating / strict validation (future)
 
