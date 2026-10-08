@@ -20,8 +20,12 @@ assert_rejected "$H" "persistence.enabled + replicaCount>1" \
   --set persistence.enabled=true --set replicaCount=2
 assert_rejected "$H" "ingress.enabled without hosts" \
   --set ingress.enabled=true
-assert_rejected "$H" "dashboard.insecure without acknowledgement" \
+assert_rejected "$H" "dashboard.insecure (removed in 0.2.0)" \
   --set dashboard.enabled=true --set dashboard.insecure=true
+assert_rejected "$H" "dashboard enabled without an auth provider" \
+  --set dashboard.enabled=true
+assert_rejected "$H" "API_SERVER_KEY shorter than 16 chars" \
+  --set apiServer.key=short-key
 assert_rejected "$H" "strategy RollingUpdate with persistence (RWO)" \
   --set persistence.enabled=true --set strategy.type=RollingUpdate
 

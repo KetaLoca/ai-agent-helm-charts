@@ -8,7 +8,8 @@ securityContext:
   readOnlyRootFilesystem: true
 
 # With a read-only rootfs, mount writable tmpfs for every path the image writes to.
-# /run is required for s6; add /tmp (and any others your image uses) here:
+# /run is required for s6 and /tmp holds XDG_RUNTIME_DIR (both are the chart default);
+# add any others your image uses here:
 scratchPaths:
   - /run
   - /tmp

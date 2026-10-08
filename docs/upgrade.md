@@ -13,10 +13,10 @@ reconciled by the OpenClaw operator.
 
 | Chart | Chart version | App (image) | Operator | Min K8s | Helm |
 |---|---|---|---|---|---|
-| `hermes-agent` | `0.1.5` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | — | `>= 1.25` | `>= 3.8` (4 supported) |
+| `hermes-agent` | `0.2.0` | `nousresearch/hermes-agent` (`appVersion: v0.21.6`*) | — | `>= 1.25` | `>= 3.8` (4 supported) |
 | `openclaw-instance` | `0.3.0` | `ghcr.io/openclaw/openclaw` (`appVersion: 2026.8.35`) | `openclaw-operator 0.40.0` (bundled when `operator.install=true`) | `>= 1.28` | `>= 3.8` |
 
-\* Pinned to an upstream CalVer release, with the matching `image.digest` pinned by
+\* Pinned to an upstream release tag, with the matching `image.digest` pinned by
 default (see "Image pinning").
 
 ---
@@ -44,10 +44,43 @@ helm upgrade my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent \
 - **Gotcha:** changing `persistence.size` on upgrade does **not** resize an existing PVC
   (depends on your StorageClass; usually a manual expansion).
 
+### 0.1.x → 0.2.0 (app v2026.6.19 → v0.21.6)
+
+1. **Back up the PVC first.** The app migrates `state.db` (session routing, full-text
+   index layout) one-way on first boot.
+2. **Dashboard: `dashboard.insecure` / `insecureAcknowledgeRisk` are gone.** Upstream
+   ignores `HERMES_DASHBOARD_INSECURE` since v2026.7.1 and a non-loopback dashboard
+   *always* requires an auth provider (it fails closed otherwise). If you run the
+   dashboard, create a Secret and point `dashboard.auth.existingSecret` at it, e.g.
+   password login:
+
+   ```bash
+   kubectl create secret generic hermes-dashboard-auth \
+     --from-literal=HERMES_DASHBOARD_BASIC_AUTH_USERNAME=admin \
+     --from-literal=HERMES_DASHBOARD_BASIC_AUTH_PASSWORD="$(openssl rand -base64 24)" \
+     --from-literal=HERMES_DASHBOARD_BASIC_AUTH_SECRET="$(openssl rand -hex 32)"
+   ```
+
+   or OIDC (`HERMES_DASHBOARD_OIDC_ISSUER`, `_CLIENT_ID`, `_CLIENT_SECRET`). Behind an
+   ingress also set `dashboard.publicUrl` and `dashboard.trusted_proxies` in
+   `/opt/data/config.yaml`. `insecure: true` now fails the render with a migration hint.
+3. **`API_SERVER_KEY` must be >= 16 chars** (and not a placeholder) — upstream refuses to
+   start the API server otherwise, `/health` never answers and the pod crash-loops. The
+   chart rejects short inline/dev keys at render time; check keys in your own Secrets.
+4. **No key → Hermes generates one** into `/opt/data/.env`, which is loaded with
+   `override=True`: it beats a key you add to the environment later. If you switch to a
+   Secret afterwards, delete the `API_SERVER_KEY=` line from `/opt/data/.env`.
+5. **`/tmp` is now a default `scratchPaths` tmpfs** (holds `XDG_RUNTIME_DIR`). If you
+   override `scratchPaths`, keep both `/run` and `/tmp`.
+6. **Lazy installs are back on:** on-demand dependencies install into
+   `/opt/data/installs` (PVC). Disable with `security.allow_lazy_installs: false` in
+   `config.yaml`, or size the PVC / egress rules for it.
+7. Smart approvals (an LLM reviews flagged commands) are the default since v2026.7.20.
+
 ### Image pinning (pinned by default)
 
-Upstream publishes **versioned CalVer release tags** (e.g. `v2026.6.19`), so the chart
-pins `appVersion` to a specific release, and `values.yaml` **also ships the matching
+Upstream publishes **versioned release tags** — SemVer since `v0.21.6` (2026-10-08),
+CalVer (`v2026.6.19`) before — so the chart pins `appVersion` to a specific release, and `values.yaml` **also ships the matching
 `image.digest`** — installs are fully immutable out of the box, no action needed.
 
 The digest **must be refreshed together with `appVersion`** on every bump (a stale

@@ -22,10 +22,13 @@ Then call the OpenAI-compatible API at http://127.0.0.1:{{ .Values.service.port 
 {{- $hasKey := or (ne .Values.apiServer.key "") (ne .Values.secrets.existingSecret "") (and .Values.secrets.create (hasKey .Values.secrets.data "API_SERVER_KEY")) (gt (len .Values.extraEnvFrom) 0) }}
 {{- if not $hasKey }}
 
-‼️  No API key source detected, but apiServer.requireKey=true. The gateway needs
-   API_SERVER_KEY for non-loopback access. Provide one of:
-     --set apiServer.key=...                 (dev only)
-     --set secrets.existingSecret=my-secret  (prod; must contain API_SERVER_KEY)
+‼️  No API key source detected, but apiServer.requireKey=true. Hermes will GENERATE a
+   random API_SERVER_KEY on first boot and persist it in {{ .Values.persistence.mountPath }}/.env. Read it with:
+     kubectl --namespace {{ .Release.Namespace }} exec deploy/{{ include "hermes-agent.fullname" . }} -- grep ^API_SERVER_KEY= {{ .Values.persistence.mountPath }}/.env
+   That .env value OVERRIDES any key you add to the environment later (it is loaded with
+   override=True) — delete the line from .env if you switch to a Secret. Prefer one of:
+     --set apiServer.key=...                 (dev only; >= 16 chars)
+     --set secrets.existingSecret=my-secret  (prod; must contain API_SERVER_KEY, >= 16 chars)
      extraEnvFrom: [...]                      (e.g. External Secrets)
 {{- end }}
 {{- end }}
@@ -44,8 +47,10 @@ Then call the OpenAI-compatible API at http://127.0.0.1:{{ .Values.service.port 
 {{- if .Values.dashboard.enabled }}
 
 ⚠️  Dashboard ENABLED (port {{ .Values.dashboard.port }}); it stores/exposes API keys & sessions.
-{{- if .Values.dashboard.insecure }}
-‼️  dashboard.insecure=true — the OAuth gate is DISABLED. Use only on a trusted network behind a VPN.
+   Auth is always on: it needs a provider (basic password, OIDC or Nous OAuth) from
+   {{ if .Values.dashboard.auth.existingSecret }}Secret {{ .Values.dashboard.auth.existingSecret }}{{ else }}your Secret / env (dashboard.auth){{ end }} — otherwise the dashboard fails closed and restarts.
+{{- if and .Values.ingress.enabled (not .Values.dashboard.publicUrl) }}
+‼️  Behind an ingress, set dashboard.publicUrl (OAuth/OIDC redirects, Host/Origin checks).
 {{- end }}
 {{- if not .Values.dashboard.service }}
    It is NOT on the Service. Reach it with:

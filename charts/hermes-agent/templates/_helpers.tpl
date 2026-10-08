@@ -88,6 +88,20 @@ Precedence: digest > tag > Chart.AppVersion. Refuse to default to ":latest".
 {{- end -}}
 
 {{/*
+Non-empty when some dashboard auth provider source is configured. Secrets referenced by
+name can't be inspected at render time, so any envFrom source counts as a candidate.
+*/}}
+{{- define "hermes-agent.dashboardAuthSource" -}}
+{{- $providerKeys := list "HERMES_DASHBOARD_BASIC_AUTH_USERNAME" "HERMES_DASHBOARD_OIDC_ISSUER" "HERMES_DASHBOARD_OAUTH_CLIENT_ID" -}}
+{{- $names := keys .Values.env -}}
+{{- range .Values.extraEnv }}{{ $names = append $names .name }}{{ end -}}
+{{- if .Values.secrets.create }}{{ $names = concat $names (keys .Values.secrets.data) }}{{ end -}}
+{{- $found := or .Values.dashboard.auth.existingSecret .Values.secrets.existingSecret .Values.extraEnvFrom -}}
+{{- range $providerKeys }}{{ if has . $names }}{{ $found = true }}{{ end }}{{ end -}}
+{{- if $found }}true{{ end -}}
+{{- end -}}
+
+{{/*
 Validate safety invariants. Fails the render with a clear message.
 */}}
 {{- define "hermes-agent.validate" -}}
@@ -97,8 +111,20 @@ Validate safety invariants. Fails the render with a clear message.
 {{- if and .Values.persistence.enabled (eq .Values.strategy.type "RollingUpdate") -}}
 {{- fail "hermes-agent: strategy.type=RollingUpdate is unsafe with persistence (RWO single-writer). Use Recreate (the default)." -}}
 {{- end -}}
-{{- if and .Values.dashboard.insecure (not .Values.dashboard.insecureAcknowledgeRisk) -}}
-{{- fail "hermes-agent: dashboard.insecure=true exposes API keys/sessions without auth. Set dashboard.insecureAcknowledgeRisk=true to confirm you understand the risk." -}}
+{{- if .Values.dashboard.insecure -}}
+{{- fail "hermes-agent: dashboard.insecure was removed in chart 0.2.0 — upstream ignores HERMES_DASHBOARD_INSECURE since v2026.7.1 and the dashboard always requires an auth provider. Configure dashboard.auth instead (see docs/upgrade.md)." -}}
+{{- end -}}
+{{- if and .Values.dashboard.enabled (not (include "hermes-agent.dashboardAuthSource" .)) -}}
+{{- fail "hermes-agent: dashboard.enabled=true requires an auth provider (upstream fails closed on a non-loopback bind). Set dashboard.auth.existingSecret, or provide HERMES_DASHBOARD_BASIC_AUTH_* / _OIDC_* / _OAUTH_CLIENT_ID via secrets.existingSecret, secrets.data, extraEnvFrom or env/extraEnv." -}}
+{{- end -}}
+{{- $keys := list .Values.apiServer.key -}}
+{{- if .Values.secrets.create -}}
+{{- $keys = append $keys (get .Values.secrets.data "API_SERVER_KEY" | default "" | toString) -}}
+{{- end -}}
+{{- range $keys -}}
+{{- if and . (lt (len .) 16) -}}
+{{- fail "hermes-agent: API_SERVER_KEY must be at least 16 characters (upstream refuses to start the API server otherwise). Generate one with `openssl rand -hex 32`." -}}
+{{- end -}}
 {{- end -}}
 {{- if and .Values.ingress.enabled (not .Values.ingress.hosts) -}}
 {{- fail "hermes-agent: ingress.enabled=true requires ingress.hosts to be non-empty." -}}

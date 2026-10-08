@@ -46,7 +46,8 @@ cannot allow-list by hostname.** For per-provider egress use a CNI with FQDN pol
 - No `hostPath` mounts, no Docker socket, no privileged / `hostNetwork` / `hostPID`.
 - No cluster RBAC for the agent SA unless a specific skill needs it (scope it).
 - No `:latest` in production.
-- Don't enable the dashboard on a public Service; don't set `dashboard.insecure` off a VPN.
+- Don't enable the dashboard on a public Service. It always requires an auth provider
+  (`dashboard.auth`); there is no "insecure" mode any more (upstream removed it in v2026.7.1).
 
 ## Cloudflare Tunnel (no open inbound)
 

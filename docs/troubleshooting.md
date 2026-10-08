@@ -8,8 +8,8 @@
   writable by UID 10000. The chart sets `fsGroup: 10000`; if you reuse an old PVC
   with root-owned files, fix ownership or keep `fsGroupChangePolicy: OnRootMismatch`.
 - `securityContext.readOnlyRootFilesystem: true` is supported — the chart always mounts
-  tmpfs scratch at `scratchPaths` (`/run` by default, required for s6-overlay). Add `/tmp`
-  (and any other paths your image writes to) when enabling it.
+  tmpfs scratch at `scratchPaths` (`/run` + `/tmp` by default; `/run` is required for
+  s6-overlay). Add any other paths your image writes to when enabling it.
 
 ## PVC stuck Pending
 - No default `StorageClass`, or it can't provide `ReadWriteOnce`. Set

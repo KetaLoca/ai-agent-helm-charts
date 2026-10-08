@@ -17,12 +17,49 @@ tests:
     asserts:
       - failedTemplate: {}
 
-  - it: rejects an insecure dashboard without acknowledgement
+  - it: rejects the removed dashboard.insecure switch
     set:
       dashboard.enabled: true
       dashboard.insecure: true
     asserts:
-      - failedTemplate: {}
+      - failedTemplate:
+          errorPattern: "dashboard.insecure was removed"
+
+  - it: rejects a dashboard without an auth provider
+    set:
+      dashboard.enabled: true
+    asserts:
+      - failedTemplate:
+          errorPattern: "requires an auth provider"
+
+  - it: accepts a dashboard with an auth secret
+    set:
+      dashboard.enabled: true
+      dashboard.auth.existingSecret: dash-auth
+    asserts:
+      - notFailedTemplate: {}
+
+  - it: accepts a dashboard with basic-auth keys in the dev secret
+    set:
+      dashboard.enabled: true
+      secrets.create: true
+      secrets.data:
+        HERMES_DASHBOARD_BASIC_AUTH_USERNAME: admin
+        HERMES_DASHBOARD_BASIC_AUTH_PASSWORD: a-long-dev-password
+    asserts:
+      - notFailedTemplate: {}
+
+  # A short inline apiServer.key is rejected by values.schema.json before templating
+  # (helm-unittest reports that as an error, not a failedTemplate); it is covered by
+  # .github/scripts/negative-tests.sh instead.
+  - it: rejects a short API key in the dev secret
+    set:
+      secrets.create: true
+      secrets.data:
+        API_SERVER_KEY: short-key
+    asserts:
+      - failedTemplate:
+          errorPattern: "at least 16 characters"
 
   - it: rejects RollingUpdate with persistence
     set:

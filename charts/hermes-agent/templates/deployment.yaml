@@ -88,9 +88,9 @@ spec:
               value: "0.0.0.0"
             - name: HERMES_DASHBOARD_PORT
               value: {{ .Values.dashboard.port | quote }}
-            {{- if .Values.dashboard.insecure }}
-            - name: HERMES_DASHBOARD_INSECURE
-              value: "1"
+            {{- with .Values.dashboard.publicUrl }}
+            - name: HERMES_DASHBOARD_PUBLIC_URL
+              value: {{ . | quote }}
             {{- end }}
             {{- end }}
             {{- range $k, $v := .Values.env }}
@@ -101,7 +101,8 @@ spec:
             {{- toYaml . | nindent 12 }}
             {{- end }}
           {{- end }}
-          {{- if or .Values.secrets.existingSecret .Values.secrets.create .Values.extraEnvFrom }}
+          {{- $dashAuthSecret := and .Values.dashboard.enabled .Values.dashboard.auth.existingSecret }}
+          {{- if or .Values.secrets.existingSecret .Values.secrets.create $dashAuthSecret .Values.extraEnvFrom }}
           envFrom:
             {{- if .Values.secrets.existingSecret }}
             - secretRef:
@@ -110,6 +111,10 @@ spec:
             {{- if .Values.secrets.create }}
             - secretRef:
                 name: {{ include "hermes-agent.secretName" . }}
+            {{- end }}
+            {{- if $dashAuthSecret }}
+            - secretRef:
+                name: {{ .Values.dashboard.auth.existingSecret }}
             {{- end }}
             {{- with .Values.extraEnvFrom }}
             {{- toYaml . | nindent 12 }}

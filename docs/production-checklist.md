@@ -13,7 +13,8 @@ Work through this before exposing `hermes-agent` to anything real.
 ## Exposure
 - [ ] `ingress.enabled: false`, or fronted by an identity-aware proxy + TLS + auth + rate limiting.
 - [ ] `service.type: ClusterIP` (no LoadBalancer/NodePort to the internet).
-- [ ] Dashboard off, or behind a VPN; `dashboard.insecure` not used.
+- [ ] Dashboard off, or behind a VPN with a real auth provider (`dashboard.auth`, password
+      login with `HERMES_DASHBOARD_BASIC_AUTH_SECRET` set, or OIDC).
 - [ ] `apiServer.requireKey: true` and a key source is actually configured.
 
 ## State & availability

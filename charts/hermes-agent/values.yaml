@@ -18,13 +18,15 @@ image:
   # out of the box. MUST be refreshed together with appVersion (the
   # revisar-actualizaciones skill / Renovate keep them in sync). Set to "" to track
   # the tag instead.
-  digest: "sha256:9f367c7756ef087661a361536a89f438d57a122b958dc23d82d456b1433e6e9e"
+  digest: "sha256:55e192fba0cd4fde61142abbff5adeacff40efdb482ccd0ff877924bd274f909"
   # -- Image pull policy.
   pullPolicy: IfNotPresent
 # -- Image pull secrets, e.g. [{name: my-regcred}].
 imagePullSecrets: []
 
-# -- Override the container entrypoint. The image runs `gateway run` via s6 (/init).
+# -- Override the container entrypoint. The image's ENTRYPOINT
+# (/opt/hermes/docker/entrypoint-dispatch.sh) boots s6 as PID 1 and runs `gateway run`.
+# Don't override it unless you know why: without s6 as PID 1 the dashboard service never starts.
 command: []
 # -- Override the container args (the long-running gateway process).
 args:
@@ -35,6 +37,9 @@ apiServer:
   # -- Require an API key whenever the Service is enabled. Strongly recommended.
   requireKey: true
   # -- DEV ONLY inline API key (sets API_SERVER_KEY). Prefer secrets.existingSecret / extraEnvFrom in production.
+  # Must be >= 16 chars and not a placeholder (upstream refuses to start the API server
+  # otherwise). Generate one with `openssl rand -hex 32`. If NO key reaches the container,
+  # Hermes generates one and persists it in /opt/data/.env (see NOTES).
   key: ""
   # -- API_SERVER_CORS_ORIGINS. Empty = most restrictive (no CORS).
   corsOrigins: ""
@@ -93,13 +98,27 @@ service:
 
 dashboard:
   # -- Enable the web dashboard (HERMES_DASHBOARD=1). Stores/exposes API keys — keep off unless needed.
+  # It binds 0.0.0.0, so upstream REQUIRES an auth provider (it fails closed otherwise):
+  # configure `dashboard.auth`. The old `insecure` switch was removed — upstream ignores
+  # HERMES_DASHBOARD_INSECURE since v2026.7.1.
   enabled: false
-  # -- Disable the dashboard OAuth gate (HERMES_DASHBOARD_INSECURE). DANGEROUS.
-  insecure: false
-  # -- Required acknowledgement: must be true if insecure is true.
-  insecureAcknowledgeRisk: false
   # -- Dashboard port.
   port: 9119
+  # -- Public URL the dashboard is reached at (HERMES_DASHBOARD_PUBLIC_URL), e.g.
+  # https://hermes.example.com. Needed for OAuth/OIDC redirects and Host/Origin checks
+  # behind an ingress. Also add the ingress controller to `dashboard.trusted_proxies` in
+  # /opt/data/config.yaml so forwarded client IPs are honoured.
+  publicUrl: ""
+  auth:
+    # -- Existing Secret with the dashboard auth provider settings, loaded via envFrom.
+    # One provider is required when the dashboard is enabled:
+    #   password: HERMES_DASHBOARD_BASIC_AUTH_USERNAME + HERMES_DASHBOARD_BASIC_AUTH_PASSWORD
+    #             (or _PASSWORD_HASH), plus HERMES_DASHBOARD_BASIC_AUTH_SECRET so sessions
+    #             survive restarts (random per process otherwise)
+    #   OIDC:     HERMES_DASHBOARD_OIDC_ISSUER, _CLIENT_ID, _CLIENT_SECRET (_SCOPES optional)
+    #   Nous:     HERMES_DASHBOARD_OAUTH_CLIENT_ID
+    # The same keys may instead live in secrets.existingSecret / secrets.data / extraEnvFrom.
+    existingSecret: ""
   # -- Also expose the dashboard port on the Service. Default false → use port-forward.
   service: false
 
@@ -145,9 +164,11 @@ securityContext:
 
 # -- Writable tmpfs (emptyDir medium=Memory) ALWAYS mounted at these paths. `/run` is
 # REQUIRED: the upstream s6-overlay (PID 1) expects a writable tmpfs /run as the non-root
-# user, or the container fails to start. Add paths (e.g. /tmp) when enabling readOnlyRootFilesystem.
+# user, or the container fails to start. `/tmp` hosts XDG_RUNTIME_DIR (/tmp/hermes-runtime),
+# which the image bakes root-owned 0700 — unusable by the non-root user without a fresh tmpfs.
 scratchPaths:
   - /run
+  - /tmp
 # -- Size limit for each scratch tmpfs (counts against the pod memory limit).
 scratchSizeLimit: 128Mi
 

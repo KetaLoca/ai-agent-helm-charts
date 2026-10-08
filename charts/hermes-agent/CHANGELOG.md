@@ -4,6 +4,51 @@ All notable changes to the `hermes-agent` chart are documented here.
 Format: [Keep a Changelog](https://keepachangelog.com/en/1.1.0/); the chart follows
 [SemVer](https://semver.org/) (independent of `appVersion`).
 
+## [0.2.0] - 2026-10-08
+
+### Changed
+- **Bump the image** from `v2026.6.19` to `v0.21.6` (`image.digest` →
+  `sha256:55e192fb…`). Upstream switched from CalVer to SemVer-only tags with this
+  release (`v2026.9.24` was `v0.21.5`).
+- **`/tmp` is a default `scratchPaths` tmpfs** (now `[/run, /tmp]`). The image sets
+  `XDG_RUNTIME_DIR=/tmp/hermes-runtime`, baked root-owned `0700`, so the non-root user
+  can't use it without a fresh tmpfs.
+- **NOTES** explain that, with no API key supplied, Hermes generates one into
+  `/opt/data/.env` (and how to read it). That `.env` value overrides an environment key
+  added later.
+
+### Added
+- `dashboard.auth.existingSecret` — Secret with the dashboard auth provider (basic
+  password / self-hosted OIDC / Nous OAuth), loaded via `envFrom`.
+- `dashboard.publicUrl` → `HERMES_DASHBOARD_PUBLIC_URL` (OAuth/OIDC redirects and
+  Host/Origin checks behind an ingress).
+- Render-time checks: the dashboard requires an auth provider source, and
+  `apiServer.key` / `secrets.data.API_SERVER_KEY` must be >= 16 chars (upstream refuses
+  to start the API server otherwise; the schema enforces the same on `apiServer.key`).
+
+### Removed
+- **BREAKING: `dashboard.insecure` and `dashboard.insecureAcknowledgeRisk`.** Upstream
+  ignores `HERMES_DASHBOARD_INSECURE` since v2026.7.1 and a non-loopback dashboard always
+  requires an auth provider, failing closed (restart loop) without one. Setting
+  `dashboard.insecure: true` now fails the render with a migration hint.
+
+### Security
+- v0.21.6 fixes four dashboard-auth issues reported by Tenable (TRA-725…728): native
+  sign-in could send login codes to a non-loopback redirect (session takeover), spoofed
+  `X-Forwarded-For` reset the password-login rate limit, unbounded auth audit-log writes,
+  and no body-size limit on `/auth/`. Also: untrusted repos could run git
+  `clean`/`smudge` filters, and an email-allowlist bypass via quoted display names.
+- Earlier in the range: an IDOR on `/resume` / `/sessions`, cross-profile credential
+  leaks under multiplex, OAuth token TOCTOU, dependency CVE floors (aiohttp,
+  cryptography, starlette, python-multipart) and a concurrent-run cap on the API server.
+
+### Upgrade notes
+- **Back up the PVC first** (one-way `state.db` migrations). See
+  [docs/upgrade.md](../../docs/upgrade.md#01x--020-app-v2026619--v0216).
+- `v0.21.6` (the pinned tag) and upstream's `stable` alias currently point at different
+  digests (`stable` = `rc.4-v0.21.6`). The chart pins the release tag. Upstream deferred
+  the curated notes for this range to v0.22.0.
+
 ## [0.1.5] - 2026-06-26
 
 ### Changed

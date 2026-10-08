@@ -26,12 +26,12 @@ chart forbids `replicaCount > 1` with persistence and uses the `Recreate` strate
 
 ```bash
 # OCI (no helm repo add needed)
-helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.1.5 \
+helm install my-hermes oci://ghcr.io/ketaloca/charts/hermes-agent --version 0.2.0 \
   -f my-values.yaml
 
 # …or the classic repo
 helm repo add ketaloca https://ketaloca.github.io/ai-agent-helm-charts
-helm install my-hermes ketaloca/hermes-agent --version 0.1.5 -f my-values.yaml
+helm install my-hermes ketaloca/hermes-agent --version 0.2.0 -f my-values.yaml
 ```
 
 Reach it locally — the gateway is **not** exposed publicly by default:
@@ -54,12 +54,13 @@ See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
   `ClusterIP` Service can reach it. This is **cluster-internal**, not the internet.
   Exposure beyond the cluster still needs Ingress (off) + the API key + (recommended)
   a NetworkPolicy.
-- **API key required** for non-loopback access. Supply it via `secrets.existingSecret`
-  / `extraEnvFrom` in production; `apiServer.key` is dev-only.
+- **API key required** (>= 16 chars, enforced at render time). Supply it via
+  `secrets.existingSecret` / `extraEnvFrom` in production; `apiServer.key` is dev-only.
+  With no key at all, Hermes generates one into `/opt/data/.env` (see NOTES).
 - **Single-writer / `Recreate`** — see above. `persistence.enabled + replicaCount>1`
   is rejected at render time.
 - **Pinned by digest by default** — the image is `digest > tag > appVersion`; an
-  all-empty reference fails. `appVersion` is an upstream CalVer release (`v2026.6.19`)
+  all-empty reference fails. `appVersion` is an upstream release tag (`v0.21.6`)
   and `values.yaml` ships the **matching `image.digest`**, so installs are immutable out
   of the box. The digest is refreshed together with `appVersion` on every bump; set
   `image.digest: ""` to track the tag instead.
@@ -98,7 +99,8 @@ See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
 | `service.type` | `ClusterIP` | Keep ClusterIP; don't expose via LoadBalancer. |
 | `service.port` / `targetPort` | `8642` / `8642` | |
 | `dashboard.enabled` | `false` | Enable the web dashboard (stores keys). |
-| `dashboard.insecure` | `false` | Disable OAuth gate — **dangerous** (needs `insecureAcknowledgeRisk: true`). |
+| `dashboard.auth.existingSecret` | `""` | Secret with the dashboard auth provider (basic password / OIDC / Nous OAuth). **Required** when the dashboard is enabled (or the same keys via `secrets.*` / `extraEnvFrom` / `env`). |
+| `dashboard.publicUrl` | `""` | `HERMES_DASHBOARD_PUBLIC_URL` — set it behind an ingress. |
 | `dashboard.port` | `9119` | |
 | `dashboard.service` | `false` | Add 9119 to the Service (else port-forward). |
 | `ingress.enabled` | `false` | **Off.** Exposing is dangerous (auth + TLS required). |
@@ -111,7 +113,7 @@ See [`examples/hermes/`](../../examples/hermes/): `minimal`, `production`,
 | `networkPolicy.enabled` | `false` | Default-deny + `allowDNS` + your rules (needs enforcing CNI). |
 | `networkPolicy.allowDNS` / `ingress` / `egress` | `true` / `[]` / `[]` | NP is L4-only (no hostnames). |
 | `probes.{liveness,readiness,startup}` | enabled on `/health` | HTTP probes vs the gateway `/health` (port 8642, no auth). |
-| `scratchPaths` / `scratchSizeLimit` | `[/run]` / `128Mi` | Always-mounted tmpfs scratch; `/run` is required for s6-overlay to boot. |
+| `scratchPaths` / `scratchSizeLimit` | `[/run, /tmp]` / `128Mi` | Always-mounted tmpfs scratch; `/run` is required for s6-overlay to boot, `/tmp` holds `XDG_RUNTIME_DIR`. |
 | `strategy.type` | `Recreate` | Forced with persistence. |
 | `pdb.enabled` | `false` | Beware `minAvailable:1` at replicas=1 blocks drains. |
 | `nodeSelector` / `tolerations` / `affinity` / `topologySpreadConstraints` | `{}` / `[]` / `{}` / `[]` | |
@@ -134,9 +136,9 @@ See [docs/security.md](../../docs/security.md) and the
 
 | Chart | App (image) | Min K8s | Helm |
 |---|---|---|---|
-| `0.1.5` | `nousresearch/hermes-agent` (`appVersion: v2026.6.19`*) | `>= 1.25` | `>= 3.8` |
+| `0.2.0` | `nousresearch/hermes-agent` (`appVersion: v0.21.6`*) | `>= 1.25` | `>= 3.8` |
 
-\* Pinned to an upstream CalVer release, with the matching `image.digest` pinned by default. See [docs/upgrade.md](../../docs/upgrade.md).
+\* Pinned to an upstream release tag, with the matching `image.digest` pinned by default. See [docs/upgrade.md](../../docs/upgrade.md).
 
 ## Uninstall
 
