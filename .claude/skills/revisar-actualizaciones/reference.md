@@ -5,9 +5,12 @@ file mapping, the version-scheme rules, or the manifest spec.
 
 ## Version-scheme gotchas (why we trust the script, not raw tag lists)
 
-- **Two schemes, one release (Hermes).** `NousResearch/hermes-agent` tags each release
-  both as CalVer (`v2026.6.19`) and SemVer (`v0.17.0`). The Docker Hub **image tag is
-  the CalVer one, with the `v`** (`v2026.6.19`). Pin that, not `v0.17.0`.
+- **Hermes switched tag scheme (2026-10-08).** Up to `v2026.9.24` (== SemVer `v0.21.5`)
+  releases were tagged CalVer; from `v0.21.6` on they are tagged **SemVer only**. Numerically
+  `v2026.x` > `v0.x`, so the manifest sets `latest.order: "published"` for Hermes (sort by
+  publish date, not by tag). The Docker Hub **image tag equals the release tag, with the
+  `v`** (`v0.21.6`). Upstream also publishes `-desktop` variants (Xvnc/Xfce/Chromium) and
+  `stable`/`latest`/`rc.N-…` aliases — pin the plain release tag + its digest.
 - **`v` prefix differs per registry.** OpenClaw GitHub release tags carry a `v`
   (`v2026.6.10`); the **GHCR image tags do not** (`2026.6.10`). The manifest's
   `image.strip_v` handles this — `image.latest_tag` in the JSON is the *pullable* tag.
@@ -92,7 +95,9 @@ Always re-validate against the live CRD when the operator moves:
       },
       "latest": {                                // upstream source of truth
         "method": "github-release" | "ghcr-tags",
-        "repo":   "OWNER/REPO"  or  "ns/charts/name"
+        "repo":   "OWNER/REPO"  or  "ns/charts/name",
+        "order":  "version" | "published"        // github-release only; default "version".
+                                                 // "published" = by release date (tag-scheme changes)
       },
       "image": {                                 // optional; for kind=image
         "registry": "dockerhub" | "ghcr",
@@ -115,7 +120,9 @@ and wire it in `resolve_latest()`.
 ## Engine notes (`scripts/check_versions.py`)
 
 - **No third-party deps** (stdlib only): `urllib`, `json`, `re`, `subprocess`.
-- **Auth:** GitHub via `gh api` when present (5000 req/h), else anonymous API (60/h).
+- **Auth:** GitHub via `gh release list` (GraphQL, only the fields we need — the REST
+  `/releases` payload carries full notes, ~4 MB / ~50 s for openclaw) when `gh` is present
+  (5000 req/h), else anonymous REST API (60/h).
   GHCR/Docker Hub use anonymous pull tokens (fine for public repos).
 - **Flags:** `--json` (structured), `--digests` (resolve image digests for flagged
   components — Docker Hub `tags/<t>` field, GHCR `Docker-Content-Digest` header — AND, for

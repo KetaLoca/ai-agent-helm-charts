@@ -8,11 +8,11 @@
       "kind": "image",
       "current": { "file": "charts/hermes-agent/Chart.yaml", "field": "appVersion" },
       "digest_pin": { "file": "charts/hermes-agent/values.yaml", "key": "image.digest" },
-      "latest": { "method": "github-release", "repo": "NousResearch/hermes-agent" },
+      "latest": { "method": "github-release", "repo": "NousResearch/hermes-agent", "order": "published" },
       "image": { "registry": "dockerhub", "repo": "nousresearch/hermes-agent", "strip_v": false },
       "changelog": "https://github.com/NousResearch/hermes-agent/releases",
-      "version_scheme": "calver vYYYY.M.D (GitHub also tags the same release as SemVer v0.x)",
-      "notes": "Chart pins appVersion to a vYYYY.M.D release AND values.yaml pins the matching image.digest by default. With --digests the engine verifies the pinned digest matches appVersion and flags drift. On a bump, update BOTH appVersion (Chart.yaml) and image.digest (values.yaml) together."
+      "version_scheme": "SemVer vX.Y.Z since v0.21.6 (2026-10-08); CalVer vYYYY.M.D before (v2026.9.24 == v0.21.5). Ordered by publish date (latest.order) because the two schemes do not compare numerically.",
+      "notes": "Chart pins appVersion to a release tag (= the Docker Hub tag, with the leading v) AND values.yaml pins the matching image.digest by default. With --digests the engine verifies the pinned digest matches appVersion and flags drift. On a bump, update BOTH appVersion (Chart.yaml) and image.digest (values.yaml) together."
     },
     {
       "id": "openclaw-app",
@@ -24,7 +24,7 @@
       "image": { "registry": "ghcr", "repo": "openclaw/openclaw", "strip_v": true },
       "changelog": "https://github.com/openclaw/openclaw/releases",
       "version_scheme": "calver YYYY.M.D (image tags have NO leading v; GitHub release tags DO)",
-      "notes": "Consumed by the operator via spec.image. Usually a low-risk bump for the chart (same CRD/operator)."
+      "notes": "Consumed by the operator via spec.image. Usually a low-risk bump for the chart (same CRD/operator). HOLD at 2026.8.x: 2026.9.x crash-loops (EPERM fchmod on the root-owned PVC root) until an openclaw-operator release > 0.40.0 ships the init-data-owner fix (#608) -- expect OUT here until then; bump app + operator together."
     },
     {
       "id": "openclaw-operator",

@@ -198,21 +198,36 @@ def http_head_digest(url: str, headers: dict) -> str | None:
 
 # ----------------------------------------------------------------- latest: GitHub
 def github_releases(repo: str) -> list[dict]:
-    """All releases (most-recent first). Uses authenticated `gh` if available."""
+    """All releases (most-recent first). Uses authenticated `gh` if available.
+
+    `gh release list` goes through GraphQL and fetches only the fields we need; the
+    REST endpoint returns full release bodies (~4 MB / ~50 s for openclaw/openclaw).
+    """
     path = f"repos/{repo}/releases?per_page=100"
     try:
         out = subprocess.run(
-            ["gh", "api", "-H", "Accept: application/vnd.github+json", path],
+            ["gh", "release", "list", "-R", repo, "--limit", "100",
+             "--json", "tagName,name,isDraft,isPrerelease,publishedAt"],
             capture_output=True, text=True, timeout=TIMEOUT,
         )
         if out.returncode == 0:
-            return json.loads(out.stdout)
+            return [
+                {
+                    "tag_name": r["tagName"],
+                    "name": r.get("name"),
+                    "draft": r.get("isDraft"),
+                    "prerelease": r.get("isPrerelease"),
+                    "published_at": r.get("publishedAt"),
+                    "html_url": f"https://github.com/{repo}/releases/tag/{r['tagName']}",
+                }
+                for r in json.loads(out.stdout)
+            ]
         tail = (out.stderr.strip().splitlines() or [""])[-1]
-        warn(f"gh api failed for {repo}: {tail}")
+        warn(f"gh release list failed for {repo}: {tail}")
     except FileNotFoundError:
         pass  # gh not installed -> fall through to anonymous API
     except Exception as exc:
-        warn(f"gh api error for {repo}: {exc}")
+        warn(f"gh release list error for {repo}: {exc}")
     try:
         data, _ = http_json(
             f"https://api.github.com/{path}",
@@ -224,15 +239,32 @@ def github_releases(repo: str) -> list[dict]:
         return []
 
 
-def latest_from_github(repo: str, current: str):
+def latest_from_github(repo: str, current: str, order: str = "version"):
+    """Latest stable release and the releases newer than `current`.
+
+    order="version" sorts by the numeric tag (default). order="published" sorts by
+    publish date — for upstreams that switched tag schemes (Hermes went CalVer
+    v2026.9.24 -> SemVer v0.21.6, so numerically the old tags would always win).
+    """
     rels = [r for r in github_releases(repo)
             if not r.get("draft") and not r.get("prerelease")
             and is_stable(r.get("tag_name", ""))]
     if not rels:
         return None, []
-    rels.sort(key=lambda r: version_key(r.get("tag_name", "")), reverse=True)
+    if order == "published":
+        rels.sort(key=lambda r: r.get("published_at") or "", reverse=True)
+        cur = next((r for r in rels
+                    if current and normalize(r.get("tag_name")) == normalize(current)), None)
+        if current and cur is None:
+            warn(f"{repo}: current '{current}' not among the fetched releases; "
+                 "newer list may be incomplete")
+        cut = (cur or {}).get("published_at") or ""
+        is_newer = lambda r: not cut or (r.get("published_at") or "") > cut
+    else:
+        rels.sort(key=lambda r: version_key(r.get("tag_name", "")), reverse=True)
+        cn = version_key(current) if current else None
+        is_newer = lambda r: cn is None or version_key(r.get("tag_name", "")) > cn
     latest = rels[0]["tag_name"]
-    cn = version_key(current) if current else None
     newer = [
         {
             "tag": r.get("tag_name"),
@@ -241,7 +273,7 @@ def latest_from_github(repo: str, current: str):
             "url": r.get("html_url"),
         }
         for r in rels
-        if cn is None or version_key(r.get("tag_name", "")) > cn
+        if is_newer(r)
     ]
     return latest, newer
 
@@ -325,7 +357,7 @@ def resolve_latest(comp: dict, current: str):
     method = comp["latest"]["method"]
     repo = comp["latest"]["repo"]
     if method == "github-release":
-        return latest_from_github(repo, current)
+        return latest_from_github(repo, current, comp["latest"].get("order", "version"))
     if method == "ghcr-tags":
         return latest_from_ghcr_tags(repo, current)
     warn(f"{comp['id']}: unknown latest.method '{method}'")
